@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#bfe6ff">
+<title>めばえ — 芽を育てよう</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;background:#bfe6ff;
+  font-family:system-ui,-apple-system,"Hiragino Sans","Hiragino Kaku Gothic ProN","Yu Gothic UI","Meiryo",sans-serif;
+  color:#2d3a24;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;
+  -webkit-tap-highlight-color:transparent;touch-action:none;overscroll-behavior:none}
+canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
+
+#hud{position:fixed;left:0;right:0;top:0;margin:0 auto;max-width:520px;
+  padding:calc(env(safe-area-inset-top) + 8px) 12px 0;pointer-events:none;
+  display:flex;flex-direction:column;gap:5px;transition:opacity .3s}
+#hud.hide{opacity:0}
+.top{display:flex;justify-content:space-between;align-items:baseline;font-weight:800;text-shadow:0 1px 0 #fff9}
+#stageName{font-size:18px}
+#timer{font-size:15px;font-variant-numeric:tabular-nums}
+.row{display:flex;align-items:center;gap:8px}
+.lbl{width:2.6em;font-size:12px;font-weight:800;text-shadow:0 1px 0 #fff9;flex:none}
+.meter{position:relative;flex:1;height:13px;border-radius:7px;background:#ffffffb0;
+  box-shadow:inset 0 1px 3px #0003;overflow:hidden}
+.fill{position:absolute;left:0;top:0;bottom:0;width:50%;border-radius:7px;transition:background .3s}
+.band{position:absolute;top:0;bottom:0;left:35%;width:40%;
+  background:rgba(80,180,80,.22);border-left:2px solid #3f9a45;border-right:2px solid #3f9a45}
+.tick{position:absolute;top:0;bottom:0;width:2px;background:#fffc}
+#fWater{background:linear-gradient(#7ccaff,#2f8fd8)}
+#fSun{background:linear-gradient(#ffd66b,#f39b1f)}
+#fHealth{background:linear-gradient(#ff9a9a,#e04848)}
+#fGrow{background:linear-gradient(#a9e57a,#4caf3c)}
+#hint{align-self:center;margin-top:3px;padding:4px 12px;border-radius:99px;background:#ffffffd0;
+  font-size:13px;font-weight:700;box-shadow:0 2px 6px #0002;min-height:1.6em;transition:color .2s}
+#hint.bad{color:#c0392b}
+#hint.good{color:#2e7d32}
+
+#toast{position:fixed;left:50%;top:42%;transform:translate(-50%,-50%);pointer-events:none;
+  font-size:clamp(22px,6vw,34px);font-weight:900;color:#fff;white-space:nowrap;
+  text-shadow:0 2px 0 #3b7d2e,0 0 12px #2a5e20a0;opacity:0}
+#toast.show{animation:toast 1.8s ease-out}
+@keyframes toast{0%{opacity:0;transform:translate(-50%,-30%) scale(.7)}
+  15%{opacity:1;transform:translate(-50%,-50%) scale(1.08)}25%{transform:translate(-50%,-50%) scale(1)}
+  75%{opacity:1}100%{opacity:0;transform:translate(-50%,-70%)}}
+
+button{font-family:inherit;cursor:pointer}
+#waterBtn{position:fixed;right:calc(16px + env(safe-area-inset-right));bottom:calc(18px + env(safe-area-inset-bottom));
+  width:92px;height:92px;border-radius:50%;border:3px solid #ffffffc0;
+  background:radial-gradient(circle at 35% 30%,#9edbff,#2b8fd6 70%);color:#fff;font-weight:800;font-size:14px;
+  box-shadow:0 6px 0 #1d6aa3,0 8px 18px #0004;touch-action:none;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:2px;transition:transform .05s,box-shadow .05s,opacity .3s}
+#waterBtn.on{transform:translateY(5px);box-shadow:0 1px 0 #1d6aa3,0 3px 8px #0004}
+#waterBtn.hide{opacity:0;pointer-events:none}
+#waterBtn svg{width:30px;height:30px}
+#muteBtn{position:fixed;left:calc(12px + env(safe-area-inset-left));bottom:calc(16px + env(safe-area-inset-bottom));
+  width:44px;height:44px;border-radius:50%;border:none;background:#ffffffb0;font-size:12px;font-weight:800;
+  color:#44573a;box-shadow:0 2px 6px #0002}
+
+.overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:16px;
+  background:rgba(30,60,30,.25);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px)}
+.overlay.hide{display:none}
+.card{background:#fffdf5;border-radius:20px;padding:22px 22px 20px;max-width:380px;width:100%;
+  box-shadow:0 10px 30px #0004;text-align:center;max-height:100%;overflow:auto}
+.card h1{font-size:34px;letter-spacing:.1em;color:#3f8f36}
+.card h2{font-size:24px;color:#3f8f36;margin-bottom:6px}
+.card .sub{font-size:14px;margin:4px 0 12px;color:#5b6b50}
+.card ul{list-style:none;text-align:left;font-size:13.5px;line-height:1.55;margin:0 0 16px;display:grid;gap:7px}
+.card li{background:#eef7e6;border-radius:10px;padding:7px 10px}
+.card li b{color:#2e7d32}
+.big{border:none;border-radius:99px;padding:13px 40px;font-size:18px;font-weight:800;color:#fff;
+  background:linear-gradient(#7fd36b,#45a83a);box-shadow:0 5px 0 #2f7a27;touch-action:manipulation}
+.big:active{transform:translateY(4px);box-shadow:0 1px 0 #2f7a27}
+.pc{font-size:12px;color:#7a8a70;margin-top:12px}
+#stars{font-size:38px;letter-spacing:6px;color:#f5b301;margin:4px 0}
+#stars .off{color:#ddd}
+.stats{font-size:15px;line-height:1.8;margin-bottom:16px}
+.stats b{font-size:18px}
+@media (max-height:480px){
+  #hud{gap:3px}.meter{height:10px}#stageName{font-size:15px}#hint{font-size:12px;padding:2px 10px}
+  #waterBtn{width:76px;height:76px}
+}
+</style>
+</head>
+<body>
+<canvas id="cv"></canvas>
+
+<div id="hud" class="hide">
+  <div class="top"><span id="stageName">種</span><span id="timer">0:00</span></div>
+  <div class="row"><span class="lbl">水</span><div class="meter"><div class="fill" id="fWater"></div><div class="band"></div></div></div>
+  <div class="row"><span class="lbl">日光</span><div class="meter"><div class="fill" id="fSun"></div><div class="band"></div></div></div>
+  <div class="row"><span class="lbl">元気</span><div class="meter"><div class="fill" id="fHealth"></div></div></div>
+  <div class="row"><span class="lbl">成長</span><div class="meter" id="growMeter"><div class="fill" id="fGrow"></div></div></div>
+  <div id="hint"></div>
+</div>
+
+<div id="toast"></div>
+
+<button id="waterBtn" class="hide" aria-label="水やり（長押し）">
+  <svg viewBox="0 0 24 24"><path d="M12 2C9 7 5 10.5 5 15a7 7 0 0 0 14 0c0-4.5-4-8-7-13z" fill="#fff"/><path d="M9 15.5a3 3 0 0 0 3 3" stroke="#2b8fd6" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg>
+  水やり
+</button>
+<button id="muteBtn" aria-label="音のオンオフ">音 ON</button>
+
+<div id="title" class="overlay">
+  <div class="card">
+    <h1>めばえ</h1>
+    <p class="sub">小さな種を、花が咲くまで育てよう。</p>
+    <ul>
+      <li><b>水やりボタンを長押し</b>で水をあげる。あげすぎると根ぐされに！</li>
+      <li><b>雲をドラッグ</b>して日当たりを調整。太陽に重ねると日かげになる。</li>
+      <li><b>虫をタップ</b>してはじき飛ばそう。放っておくと葉を食べられる。</li>
+      <li>水と日光のメーターを<b>緑のわく</b>の中に保つと、ぐんぐん育つ。</li>
+    </ul>
+    <button class="big" id="startBtn">はじめる</button>
+    <p class="pc">パソコンでは スペースキー でも水やりできます</p>
+  </div>
+</div>
+
+<div id="result" class="overlay hide">
+  <div class="card">
+    <h2 id="resTitle">花が咲いた！</h2>
+    <div id="stars"></div>
+    <div class="stats" id="resStats"></div>
+    <button class="big" id="retryBtn">もう一度</button>
+  </div>
+</div>
+
+<script>
+(() => {
+'use strict';
+const cv = document.getElementById('cv');
+const ctx = cv.getContext('2d');
+const $ = id => document.getElementById(id);
+const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+const lerp = (a, b, t) => a + (b - a) * t;
+const mix = (c1, c2, t) => `rgb(${Math.round(lerp(c1[0], c2[0], t))},${Math.round(lerp(c1[1], c2[1], t))},${Math.round(lerp(c1[2], c2[2], t))})`;
+const rand = (a, b) => a + Math.random() * (b - a);
+
+const LO = 35, HI = 75; // ちょうどいい範囲
+const STAGES = [
+  { g: 0,   n: '種',     msg: '' },
+  { g: 8,   n: '芽',     msg: '芽が出た！' },
+  { g: 25,  n: '双葉',   msg: '双葉がひらいた！' },
+  { g: 50,  n: '本葉',   msg: '本葉がのびてきた！' },
+  { g: 80,  n: 'つぼみ', msg: 'つぼみができた！' },
+  { g: 100, n: '花',     msg: '花が咲いた！' },
+];
+
+// ---------- レイアウト ----------
+let W, H, S, groundY, plantX, maxH, sun, tufts = [];
+function resize() {
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  W = window.innerWidth; H = window.innerHeight;
+  cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  S = clamp(Math.min(W, H) / 420, 0.75, 1.5);
+  groundY = H * 0.75;
+  plantX = W * 0.5;
+  maxH = Math.min(groundY - Math.max(H * 0.3, 150), 430 * S);
+  sun = { x: W * 0.8, y: Math.max(H * 0.27, 170), r: 26 * S + 10 };
+  if (H < 480) sun.y = Math.max(H * 0.3, 110);
+  tufts = [];
+  for (let x = 0; x < W; x += 14 + Math.random() * 18) tufts.push({ x, h: rand(5, 11) * S, l: Math.random() < 0.5 });
+}
+window.addEventListener('resize', resize);
+resize();
+
+// ---------- 音（Web Audioで合成） ----------
+let ac = null, muted = false;
+function ensureAudio() {
+  if (!ac) { try { ac = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { ac = null; } }
+  if (ac && ac.state === 'suspended') ac.resume();
+}
+function tone(f, d, type = 'sine', v = 0.12, f2 = 0, delay = 0) {
+  if (!ac || muted) return;
+  const t = ac.currentTime + delay;
+  const o = ac.createOscillator(), g = ac.createGain();
+  o.type = type;
+  o.frequency.setValueAtTime(f, t);
+  if (f2) o.frequency.exponentialRampToValueAtTime(f2, t + d);
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(v, t + 0.012);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + d);
+  o.connect(g); g.connect(ac.destination);
+  o.start(t); o.stop(t + d + 0.03);
+}
+const sfx = {
+  drip: () => tone(rand(900, 1500), 0.07, 'sine', 0.035, rand(500, 700)),
+  flick: () => { tone(320, 0.12, 'triangle', 0.14, 900); },
+  grab: () => tone(500, 0.06, 'sine', 0.05, 650),
+  stage: () => [523, 659, 784, 1047].forEach((f, i) => tone(f, 0.25, 'triangle', 0.1, 0, i * 0.09)),
+  win: () => [523, 659, 784, 1047, 1319, 1568].forEach((f, i) => tone(f, 0.4, 'triangle', 0.1, 0, i * 0.11)),
+  lose: () => [392, 330, 262, 196].forEach((f, i) => tone(f, 0.35, 'sine', 0.1, 0, i * 0.18)),
+  warn: () => tone(220, 0.15, 'square', 0.03),
+};
+$('muteBtn').addEventListener('click', () => {
+  muted = !muted; $('muteBtn').textContent = muted ? '音 OFF' : '音 ON';
+});
+
+// ---------- ゲーム状態 ----------
+let mode = 'title'; // title | play | bloom | wilt | result
+let st;
+function newGame() {
+  st = {
+    t: 0, at: st ? st.at : 0, growth: 0, water: 55, sun: 50, health: 100, stage: 0,
+    clouds: [], bugs: [], parts: [],
+    cloudTimer: 3, bugTimer: 6, watering: false, dripTimer: 0,
+    dh: 0, droop: 0, dim: 0, bloomT: 0, endT: 0, sunlit: true, lastHint: '', warnT: 0,
+  };
+  const c = makeCloud(false, -1);
+  c.x = sun.x - 260 * S; st.clouds.push(c);
+}
+
+function makeCloud(rain, side) {
+  side = side || (Math.random() < 0.5 ? -1 : 1);
+  const w = rand(115, 170) * S * (rain ? 1.25 : 1), h = w * 0.45;
+  const sp = rand(9, 22) * S * -side;
+  const puffs = [
+    [-0.30, 0.06, 0.21], [-0.10, -0.12, 0.27], [0.15, -0.07, 0.25], [0.34, 0.07, 0.17], [0.02, 0.10, 0.24],
+  ].map(([dx, dy, r]) => [dx + rand(-0.03, 0.03), dy + rand(-0.03, 0.03), r * rand(0.9, 1.1)]);
+  return {
+    x: side < 0 ? -w * 0.6 : W + w * 0.6, y: sun.y + rand(-45, 45) * S, w, h,
+    vx: sp, vy: 0, base: sp, rain, puffs, rainLeft: rain ? rand(8, 12) : 0, drag: null, dark: rain ? 1 : 0,
+  };
+}
+function coversSun(c) {
+  return Math.abs(c.x - sun.x) < c.w * 0.42 + sun.r * 0.2 && Math.abs(c.y - sun.y) < c.h * 0.7;
+}
+function makeBug() {
+  const side = Math.random() < 0.5 ? -1 : 1;
+  return {
+    side, x: side < 0 ? -20 : W + 20, y: groundY + 6 * S, px: 0, py: 0,
+    sp: rand(26, 40) * S * (1 + st.stage * 0.08), state: 'walk', u: 0, target: rand(0.3, 0.7), ph: Math.random() * 6,
+  };
+}
+
+// 茎の形
+function geo() {
+  const h = st.dh;
+  const sway = Math.sin(st.at * 1.3) * 5 * S * (h / maxH) + Math.sin(st.at * 2.7) * 1.5 * S;
+  const bend = sway + st.droop * 0.32 * h;
+  return { h, bend };
+}
+function stemPoint(g, u) {
+  return { x: plantX + g.bend * u * u, y: groundY - g.h * u * (1 - 0.12 * st.droop * u) };
+}
+function stemAngle(g, u) {
+  return Math.atan2(-g.h * (1 - 0.24 * st.droop * u), 2 * g.bend * u);
+}
+function targetH() {
+  const g = st.growth;
+  if (g < 8) return 0;
+  return maxH * (0.05 + 0.95 * Math.min(1, (g - 8) / 92));
+}
+
+// ---------- 入力 ----------
+const drags = new Map();
+cv.addEventListener('pointerdown', e => {
+  ensureAudio();
+  if (mode !== 'play') return;
+  const x = e.clientX, y = e.clientY;
+  // 虫
+  const R = Math.max(32, 30 * S);
+  let best = null, bd = R * R;
+  for (const b of st.bugs) {
+    const d = (b.px - x) ** 2 + (b.py - y) ** 2;
+    if (d < bd) { bd = d; best = b; }
+  }
+  if (best) { flick(best, x); return; }
+  // 雲
+  for (let i = st.clouds.length - 1; i >= 0; i--) {
+    const c = st.clouds[i];
+    if (c.drag !== null) continue;
+    const dx = (x - c.x) / (c.w * 0.6), dy = (y - c.y) / (c.h * 0.85);
+    if (dx * dx + dy * dy < 1) {
+      c.drag = e.pointerId;
+      drags.set(e.pointerId, { c, ox: c.x - x, oy: c.y - y, lx: x, ly: y, lt: performance.now(), vx: 0, vy: 0 });
+      st.clouds.splice(i, 1); st.clouds.push(c); // 手前に
+      try { cv.setPointerCapture(e.pointerId); } catch (_) {}
+      sfx.grab();
+      return;
+    }
+  }
+});
+cv.addEventListener('pointermove', e => {
+  const d = drags.get(e.pointerId);
+  if (!d) return;
+  const now = performance.now(), dt = Math.max(1, now - d.lt) / 1000;
+  const x = e.clientX, y = e.clientY;
+  d.vx = lerp(d.vx, (x - d.lx) / dt, 0.5);
+  d.vy = lerp(d.vy, (y - d.ly) / dt, 0.5);
+  d.lx = x; d.ly = y; d.lt = now;
+  d.c.x = x + d.ox;
+  d.c.y = clamp(y + d.oy, cloudMinY(), cloudMaxY());
+});
+function endDrag(e) {
+  const d = drags.get(e.pointerId);
+  if (!d) return;
+  const c = d.c;
+  c.drag = null;
+  c.vx = clamp(d.vx, -500, 500); c.vy = clamp(d.vy, -300, 300) * 0.5;
+  if (Math.abs(c.vx) > 40) c.base = Math.abs(c.base) * Math.sign(c.vx);
+  drags.delete(e.pointerId);
+}
+cv.addEventListener('pointerup', endDrag);
+cv.addEventListener('pointercancel', endDrag);
+const cloudMinY = () => Math.max(60, sun.y - 120 * S);
+const cloudMaxY = () => groundY - maxH * 0.55;
+
+function flick(b, x) {
+  st.bugs.splice(st.bugs.indexOf(b), 1);
+  const dir = b.px < x ? -1 : 1;
+  st.parts.push({ type: 'bug', x: b.px, y: b.py, vx: dir * rand(-260, -160) * -1, vy: rand(-420, -300), life: 1.2, max: 1.2, rot: 0, vr: rand(-14, 14) });
+  for (let i = 0; i < 6; i++) st.parts.push({ type: 'spark', x: b.px, y: b.py, vx: rand(-120, 120), vy: rand(-120, 120), life: 0.4, max: 0.4, size: 3 * S, color: '#fff6a0' });
+  sfx.flick();
+}
+
+const wbtn = $('waterBtn');
+function setWater(on) {
+  if (st) st.watering = on && mode === 'play';
+  wbtn.classList.toggle('on', on && mode === 'play');
+}
+wbtn.addEventListener('pointerdown', e => {
+  e.preventDefault(); ensureAudio();
+  try { wbtn.setPointerCapture(e.pointerId); } catch (_) {}
+  setWater(true);
+});
+['pointerup', 'pointercancel', 'lostpointercapture'].forEach(n => wbtn.addEventListener(n, () => setWater(false)));
+wbtn.addEventListener('contextmenu', e => e.preventDefault());
+window.addEventListener('keydown', e => {
+  if (e.code === 'Space' || e.code === 'Enter') {
+    e.preventDefault();
+    if (mode === 'title' && !e.repeat) { start(); return; }
+    if (mode === 'result' && !e.repeat) { start(); return; }
+    if (e.code === 'Space') { ensureAudio(); setWater(true); }
+  }
+});
+window.addEventListener('keyup', e => { if (e.code === 'Space') setWater(false); });
+window.addEventListener('blur', () => setWater(false));
+document.addEventListener('contextmenu', e => e.preventDefault());
+
+// ---------- 画面切り替え ----------
+function start() {
+  ensureAudio();
+  newGame();
+  mode = 'play';
+  $('title').classList.add('hide');
+  $('result').classList.add('hide');
+  $('hud').classList.remove('hide');
+  wbtn.classList.remove('hide');
+  lastHint = null;
+}
+$('startBtn').addEventListener('click', start);
+$('retryBtn').addEventListener('click', start);
+
+function toast(msg) {
+  const t = $('toast');
+  t.textContent = msg;
+  t.classList.remove('show'); void t.offsetWidth; t.classList.add('show');
+}
+const fmt = s => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
+
+function showResult(win) {
+  mode = 'result';
+  wbtn.classList.add('hide');
+  $('hud').classList.add('hide');
+  const time = st.t, hp = Math.round(st.health);
+  if (win) {
+    const stars = 1 + (time < 95 ? 1 : 0) + (hp >= 60 ? 1 : 0);
+    let best = parseFloat(localStorage.getItem('mebae_best') || '0');
+    let isBest = false;
+    if (!best || time < best) { try { localStorage.setItem('mebae_best', String(time)); } catch (_) {} best = time; isBest = true; }
+    $('resTitle').textContent = '花が咲いた！';
+    $('stars').innerHTML = [0, 1, 2].map(i => `<span class="${i < stars ? '' : 'off'}">★</span>`).join('');
+    $('resStats').innerHTML = `咲くまでの時間 <b>${fmt(time)}</b><br>元気 <b>${hp}%</b><br>ベスト <b>${fmt(best)}</b>${isBest ? ' 🌟 新記録！' : ''}`;
+  } else {
+    $('resTitle').textContent = '枯れてしまった…';
+    $('stars').innerHTML = '<span class="off">★★★</span>';
+    $('resStats').innerHTML = `たどりついた段階 <b>${STAGES[st.stage].n}</b><br>育てた時間 <b>${fmt(time)}</b><br>メーターを緑のわくに保つのがコツ！`;
+  }
+  $('result').classList.remove('hide');
+}
+
+// ---------- 更新 ----------
+let lastHint = null;
+function update(dt) {
+  const s = st;
+  s.t += dt;
+  const diff = 1 + s.stage * 0.12;
+
+  s.cloudTimer -= dt;
+  if (s.cloudTimer <= 0) {
+    if (s.clouds.length < 3) {
+      const rain = s.stage >= 2 && Math.random() < 0.35 && !s.clouds.some(c => c.rain);
+      s.clouds.push(makeCloud(rain));
+    }
+    s.cloudTimer = rand(4, 8);
+  }
+
+  const covered = s.clouds.some(coversSun);
+  s.sunlit = !covered;
+  s.sun += (covered ? -6.5 : 3.4) * dt;
+
+  let dw = -(2.0 + s.sun * 0.025) * diff;
+  if (s.watering) {
+    dw += 34;
+    s.dripTimer -= dt;
+    if (s.dripTimer <= 0) { s.dripTimer = 0.11; sfx.drip(); }
+    const sp = canSpout();
+    for (let i = 0; i < 2; i++) s.parts.push({ type: 'drop', x: sp.x, y: sp.y, vx: rand(70, 130) * S, vy: rand(-30, 30), life: 2, max: 2, size: 2.4 * S });
+  }
+  const rainOn = s.clouds.some(c => c.rain && c.rainLeft > 0 && Math.abs(c.x - plantX) < c.w * 0.45);
+  if (rainOn) dw += 13;
+  s.water = clamp(s.water + dw * dt, 0, 100);
+  s.sun = clamp(s.sun, 0, 100);
+
+  if (s.stage >= 2) {
+    s.bugTimer -= dt;
+    if (s.bugTimer <= 0) {
+      s.bugs.push(makeBug());
+      s.bugTimer = Math.max(2.5, 8 - s.stage * 1.2) + rand(0, 3);
+    }
+  }
+  updateBugs(dt);
+  const eating = s.bugs.filter(b => b.state === 'eat').length;
+
+  const ex = v => v < LO ? LO - v : v > HI ? v - HI : 0;
+  const ew = ex(s.water), es = ex(s.sun);
+  let rate = (!ew && !es) ? 2.1 : (!ew || !es) ? 0.5 : 0;
+  if (eating) rate *= 0.3;
+  s.growth = Math.min(100, s.growth + rate * dt);
+
+  let dh = 0;
+  if (ew) dh -= 3 + ew * 0.22;
+  if (es) dh -= 2.5 + es * 0.18;
+  if (!ew && !es && !eating) dh += 2.5;
+  dh -= eating * 5;
+  if (dh < 0 && s.stage < 2) dh *= 0.6; // 序盤はやさしめ
+  s.health = clamp(s.health + dh * dt, 0, 100);
+
+  if (s.health < 30 && dh < 0) {
+    s.warnT -= dt;
+    if (s.warnT <= 0) { s.warnT = 1.2; sfx.warn(); }
+  }
+
+  while (s.stage < 5 && s.growth >= STAGES[s.stage + 1].g) {
+    s.stage++;
+    sparkle();
+    if (s.stage < 5) {
+      toast(STAGES[s.stage].msg + (s.stage === 2 ? ' 虫に注意！' : ''));
+      sfx.stage();
+    }
+  }
+  if (s.stage === 5) {
+    mode = 'bloom'; s.endT = 0; setWater(false);
+    toast(STAGES[5].msg); sfx.win();
+    s.bugs.forEach(b => flickSilent(b)); s.bugs = [];
+  } else if (s.health <= 0) {
+    mode = 'wilt'; s.endT = 0; setWater(false); sfx.lose();
+  }
+
+  // HUD
+  let hint = 'いい調子！ このまま育てよう', cls = 'good';
+  const worst = Math.max(ew, es);
+  if (eating) { hint = '虫が葉を食べてる！ タップではじこう'; cls = 'bad'; }
+  else if (worst > 0) {
+    cls = 'bad';
+    if (ew >= es) hint = s.water < LO ? 'のどがカラカラ… 水やりボタンを長押し' : '水のやりすぎ！ しばらくがまん';
+    else hint = s.sun < LO ? '日光が足りない… 雲をどかそう' : '日差しが強すぎ！ 雲を太陽に重ねよう';
+  }
+  if (hint !== lastHint) { lastHint = hint; const el = $('hint'); el.textContent = hint; el.className = cls; }
+}
+function flickSilent(b) {
+  st.parts.push({ type: 'bug', x: b.px, y: b.py, vx: b.side * 200, vy: -350, life: 1.2, max: 1.2, rot: 0, vr: 10 });
+}
+
+function updateBugs(dt) {
+  const g = geo();
+  for (const b of st.bugs) {
+    b.ph += dt * 10;
+    if (b.state === 'walk') {
+      b.x += -b.side * b.sp * dt;
+      if ((b.side < 0 && b.x >= plantX) || (b.side > 0 && b.x <= plantX)) { b.x = plantX; b.state = 'climb'; b.u = 0; }
+      b.px = b.x; b.py = b.y - 4 * S;
+    } else {
+      if (b.state === 'climb') {
+        b.u += b.sp * 0.55 / Math.max(g.h, 40) * dt;
+        if (b.u >= b.target) { b.u = b.target; b.state = 'eat'; }
+      }
+      const p = stemPoint(g, b.u);
+      b.px = p.x + b.side * 5 * S; b.py = p.y;
+    }
+  }
+}
+
+function updateCommon(dt) {
+  const s = st;
+  // 雲
+  for (let i = s.clouds.length - 1; i >= 0; i--) {
+    const c = s.clouds[i];
+    if (c.rain) {
+      c.rainLeft -= dt;
+      if (c.rainLeft <= 0) c.dark = Math.max(0, c.dark - dt * 0.5);
+      else if (Math.random() < dt * 40 * (c.w / 150)) {
+        s.parts.push({ type: 'rain', x: c.x + rand(-0.4, 0.4) * c.w, y: c.y + c.h * 0.3, vx: -10, vy: 520 * S, life: 3, max: 3 });
+      }
+    }
+    if (c.drag !== null) continue;
+    c.vx += (c.base - c.vx) * Math.min(1, dt * 1.2);
+    c.vy *= 1 - Math.min(1, dt * 3);
+    c.x += c.vx * dt; c.y += c.vy * dt;
+    if (c.y < cloudMinY()) { c.y = cloudMinY(); c.vy = Math.abs(c.vy) * 0.3; }
+    if (c.y > cloudMaxY()) { c.y = cloudMaxY(); c.vy = -Math.abs(c.vy) * 0.3; }
+    if (c.x < -c.w || c.x > W + c.w) s.clouds.splice(i, 1);
+  }
+  if (mode === 'title' && s.clouds.length < 2 && Math.random() < dt * 0.3) s.clouds.push(makeCloud(false));
+
+  // 粒子
+  for (let i = s.parts.length - 1; i >= 0; i--) {
+    const p = s.parts[i];
+    p.life -= dt;
+    if (p.type === 'drop' || p.type === 'bug') p.vy += 900 * dt;
+    if (p.type === 'spark') { p.vx *= 0.95; p.vy *= 0.95; }
+    if (p.type === 'bug') p.rot += p.vr * dt;
+    p.x += p.vx * dt; p.y += p.vy * dt;
+    if ((p.type === 'drop' || p.type === 'rain') && p.y >= groundY) {
+      for (let k = 0; k < 2; k++) s.parts.push({ type: 'spark', x: p.x, y: groundY, vx: rand(-50, 50), vy: rand(-80, -30), life: 0.25, max: 0.25, size: 1.6 * S, color: '#bfe6ff' });
+      p.life = 0;
+    }
+    if (p.life <= 0) s.parts.splice(i, 1);
+  }
+
+  // 植物の見た目
+  const tH = targetH();
+  s.dh += (tH - s.dh) * Math.min(1, dt * 2.5);
+  let dr = clamp((35 - s.water) / 35, 0, 1) * 0.8 + clamp((45 - s.health) / 45, 0, 1) * 0.6;
+  if (mode === 'wilt') dr = 1;
+  s.droop += (clamp(dr, 0, 1) - s.droop) * Math.min(1, dt * 2);
+  s.dim += ((s.clouds.some(coversSun) ? 1 : 0) - s.dim) * Math.min(1, dt * 2.5);
+
+  if (mode === 'bloom') {
+    s.endT += dt; s.bloomT = Math.min(1, s.bloomT + dt / 1.6);
+    if (Math.random() < dt * 8) sparkle(1);
+    if (s.endT > 3) showResult(true);
+  } else if (mode === 'wilt') {
+    s.endT += dt;
+    if (s.endT > 2) showResult(false);
+  }
+}
+
+function sparkle(n = 14) {
+  const g = geo();
+  const p = stemPoint(g, 1);
+  for (let i = 0; i < n; i++) {
+    const a = Math.random() * Math.PI * 2, v = rand(40, 150) * S;
+    st.parts.push({ type: 'spark', x: p.x, y: p.y - 6, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: 0.9, max: 0.9, size: rand(2, 4) * S, color: Math.random() < 0.5 ? '#fff6a0' : '#ffffff' });
+  }
+}
+
+function canSpout() {
+  const top = groundY - Math.max(st.dh * 0.6, 40 * S);
+  return { x: plantX - 62 * S, y: top - 40 * S };
+}
+
+// ---------- 描画 ----------
+function draw() {
+  const s = st, t = s.at;
+  // 空
+  const sky = ctx.createLinearGradient(0, 0, 0, groundY);
+  const d = s.dim * 0.55 + (s.clouds.some(c => c.rain && c.rainLeft > 0) ? 0.25 : 0);
+  sky.addColorStop(0, mix([110, 190, 245], [130, 150, 170], d));
+  sky.addColorStop(1, mix([215, 240, 255], [190, 200, 210], d));
+  ctx.fillStyle = sky; ctx.fillRect(0, 0, W, H);
+
+  // 太陽
+  const heat = clamp((s.sun - HI) / 25, 0, 1);
+  ctx.save();
+  ctx.translate(sun.x, sun.y);
+  const glowR = sun.r * (2.4 + heat * 0.8);
+  const gl = ctx.createRadialGradient(0, 0, sun.r * 0.5, 0, 0, glowR);
+  gl.addColorStop(0, `rgba(255,${Math.round(230 - heat * 70)},120,${0.55 - s.dim * 0.35})`);
+  gl.addColorStop(1, 'rgba(255,230,120,0)');
+  ctx.fillStyle = gl; ctx.beginPath(); ctx.arc(0, 0, glowR, 0, 7); ctx.fill();
+  ctx.rotate(t * 0.3);
+  ctx.strokeStyle = `rgba(255,${Math.round(200 - heat * 60)},60,${0.9 - s.dim * 0.5})`;
+  ctx.lineWidth = 3 * S; ctx.lineCap = 'round';
+  for (let i = 0; i < 12; i++) {
+    const a = i / 12 * Math.PI * 2, l = sun.r * (1.35 + (i % 2) * 0.2 + Math.sin(t * 3 + i) * 0.05);
+    ctx.beginPath(); ctx.moveTo(Math.cos(a) * sun.r * 1.15, Math.sin(a) * sun.r * 1.15); ctx.lineTo(Math.cos(a) * l, Math.sin(a) * l); ctx.stroke();
+  }
+  ctx.fillStyle = mix([255, 214, 80], [255, 150, 50], heat);
+  ctx.beginPath(); ctx.arc(0, 0, sun.r, 0, 7); ctx.fill();
+  ctx.restore();
+
+  // 丘
+  ctx.fillStyle = mix([170, 220, 150], [150, 180, 140], d);
+  ctx.beginPath(); ctx.moveTo(0, groundY);
+  for (let x = 0; x <= W; x += 20) ctx.lineTo(x, groundY - 40 * S - Math.sin(x / W * 3.2 + 0.5) * 28 * S);
+  ctx.lineTo(W, groundY); ctx.fill();
+  ctx.fillStyle = mix([140, 205, 120], [125, 165, 115], d);
+  ctx.beginPath(); ctx.moveTo(0, groundY);
+  for (let x = 0; x <= W; x += 20) ctx.lineTo(x, groundY - 18 * S - Math.sin(x / W * 5 + 2) * 14 * S);
+  ctx.lineTo(W, groundY); ctx.fill();
+
+  // 雨
+  ctx.strokeStyle = 'rgba(90,150,220,0.7)'; ctx.lineWidth = 1.6 * S;
+  ctx.beginPath();
+  for (const p of s.parts) if (p.type === 'rain') { ctx.moveTo(p.x, p.y); ctx.lineTo(p.x - 1.5, p.y - 12 * S); }
+  ctx.stroke();
+
+  // 雲
+  for (const c of s.clouds) drawCloud(c);
+
+  // 地面
+  const wet = s.water / 100;
+  ctx.fillStyle = mix([200, 165, 112], [105, 72, 44], wet);
+  ctx.fillRect(0, groundY, W, H - groundY);
+  ctx.fillStyle = 'rgba(0,0,0,0.08)';
+  for (let i = 0; i < 40; i++) {
+    const x = (i * 97.3) % W, y = groundY + 14 + ((i * 53.7) % Math.max(1, H - groundY - 14));
+    ctx.beginPath(); ctx.ellipse(x, y, 4 * S, 2 * S, 0, 0, 7); ctx.fill();
+  }
+  if (s.water > HI) { // 水たまり
+    ctx.fillStyle = `rgba(120,180,230,${(s.water - HI) / 25 * 0.6})`;
+    ctx.beginPath(); ctx.ellipse(plantX, groundY + 6 * S, 70 * S, 8 * S, 0, 0, 7); ctx.fill();
+  }
+  ctx.fillStyle = '#6cbf4f';
+  ctx.fillRect(0, groundY - 3 * S, W, 6 * S);
+  ctx.strokeStyle = '#5aad3f'; ctx.lineWidth = 2 * S; ctx.lineCap = 'round';
+  ctx.beginPath();
+  for (const tf of tufts) {
+    if (Math.abs(tf.x - plantX) < 40 * S) continue;
+    ctx.moveTo(tf.x, groundY); ctx.lineTo(tf.x + (tf.l ? -3 : 3) * S, groundY - tf.h);
+  }
+  ctx.stroke();
+  // 土の盛り
+  ctx.fillStyle = mix([170, 130, 85], [85, 58, 36], wet);
+  ctx.beginPath(); ctx.ellipse(plantX, groundY + 2 * S, 46 * S, 12 * S, 0, Math.PI, 0); ctx.fill();
+
+  drawPlant();
+
+  // 虫
+  for (const b of s.bugs) drawBug(b.px, b.py, b.state === 'walk' ? (b.side < 0 ? 0 : Math.PI) : -Math.PI / 2, b.ph, b.state === 'eat');
+
+  // じょうろ
+  if (s.watering) drawCan();
+
+  // 粒子
+  for (const p of s.parts) {
+    const a = clamp(p.life / p.max, 0, 1);
+    if (p.type === 'drop') {
+      ctx.fillStyle = 'rgba(80,160,240,0.9)';
+      ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, 7); ctx.fill();
+    } else if (p.type === 'spark') {
+      ctx.globalAlpha = a; ctx.fillStyle = p.color;
+      ctx.beginPath(); ctx.arc(p.x, p.y, p.size * (0.5 + a * 0.5), 0, 7); ctx.fill();
+      ctx.globalAlpha = 1;
+    } else if (p.type === 'bug') {
+      ctx.globalAlpha = a; drawBug(p.x, p.y, p.rot, 0, false); ctx.globalAlpha = 1;
+    }
+  }
+
+  // 枯れ
+  if (mode === 'wilt') {
+    ctx.fillStyle = `rgba(60,40,20,${Math.min(0.25, s.endT * 0.15)})`;
+    ctx.fillRect(0, 0, W, H);
+  }
+}
+
+function drawCloud(c) {
+  const k = c.dark;
+  const col = mix([255, 255, 255], [125, 135, 150], k);
+  const sh = mix([215, 228, 240], [95, 105, 120], k);
+  const puffs = c.puffs;
+  ctx.save();
+  if (c.drag !== null) { ctx.shadowColor = 'rgba(0,0,0,0.25)'; ctx.shadowBlur = 16; ctx.shadowOffsetY = 8; }
+  ctx.fillStyle = sh;
+  ctx.beginPath();
+  for (const [dx, dy, r] of puffs) { ctx.moveTo(c.x + dx * c.w + r * c.w, c.y + dy * c.w + 4 * S); ctx.arc(c.x + dx * c.w, c.y + dy * c.w + 4 * S, r * c.w, 0, 7); }
+  ctx.fill();
+  ctx.restore();
+  ctx.fillStyle = col;
+  ctx.beginPath();
+  for (const [dx, dy, r] of puffs) { ctx.moveTo(c.x + dx * c.w + r * c.w * 0.92, c.y + dy * c.w); ctx.arc(c.x + dx * c.w, c.y + dy * c.w, r * c.w * 0.92, 0, 7); }
+  ctx.fill();
+}
+
+function leafPath(len, wid) {
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  ctx.quadraticCurveTo(len * 0.45, -wid, len, 0);
+  ctx.quadraticCurveTo(len * 0.45, wid, 0, 0);
+}
+function drawLeaf(x, y, ang, len, wid, col, vein) {
+  if (len < 0.5) return;
+  ctx.save();
+  ctx.translate(x, y); ctx.rotate(ang);
+  leafPath(len, wid);
+  ctx.fillStyle = col; ctx.fill();
+  ctx.strokeStyle = 'rgba(0,0,0,0.12)'; ctx.lineWidth = 1; ctx.stroke();
+  if (vein) {
+    ctx.strokeStyle = 'rgba(255,255,255,0.35)'; ctx.lineWidth = 1.2 * S;
+    ctx.beginPath(); ctx.moveTo(len * 0.08, 0); ctx.lineTo(len * 0.85, 0); ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function plantColor(light = 0) {
+  const s = st;
+  let hf = s.health / 100;
+  if (mode === 'wilt') hf *= Math.max(0, 1 - s.endT);
+  const pale = clamp((LO - s.sun) / LO, 0, 1);
+  const hue = 40 + 72 * hf;
+  const sat = 35 + 25 * hf - pale * 20;
+  const lig = 36 + light + pale * 14;
+  return `hsl(${hue},${sat}%,${lig}%)`;
+}
+
+function drawPlant() {
+  const s = st, g = geo(), t = s.at;
+  // 種
+  if (s.growth < 8 || g.h < 6 * S) {
+    const crack = clamp(s.growth / 8, 0, 1);
+    ctx.save();
+    ctx.translate(plantX, groundY - 2 * S);
+    ctx.rotate(-0.3);
+    ctx.fillStyle = '#8a5a2b';
+    ctx.beginPath(); ctx.ellipse(0, 0, 11 * S, 7 * S, 0, 0, 7); ctx.fill();
+    ctx.fillStyle = '#b07a42';
+    ctx.beginPath(); ctx.ellipse(-3 * S, -2 * S, 5 * S, 2.5 * S, 0, 0, 7); ctx.fill();
+    if (crack > 0.3) {
+      ctx.strokeStyle = '#4a2e14'; ctx.lineWidth = 1.5 * S;
+      ctx.beginPath(); ctx.moveTo(-6 * S, 0); ctx.lineTo(-2 * S, -3 * S * crack); ctx.lineTo(2 * S, 1 * S); ctx.lineTo(6 * S, -2 * S * crack); ctx.stroke();
+    }
+    ctx.restore();
+    if (crack > 0.55) {
+      const k = (crack - 0.55) / 0.45;
+      ctx.strokeStyle = plantColor(6); ctx.lineWidth = 3 * S; ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.arc(plantX + 2 * S, groundY - 6 * S, 5 * S * k, Math.PI, Math.PI * 2 * 0.9); ctx.stroke();
+    }
+    if (s.growth < 8) return;
+  }
+
+  // 茎
+  const N = 14;
+  const baseW = (2.5 + 4.5 * g.h / maxH) * S;
+  ctx.strokeStyle = plantColor(0); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  for (let i = 0; i < N; i++) {
+    const a = stemPoint(g, i / N), b = stemPoint(g, (i + 1) / N);
+    ctx.lineWidth = lerp(baseW, baseW * 0.55, i / N);
+    ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+  }
+
+  const droopA = s.droop * 0.9;
+  const col = plantColor(4), col2 = plantColor(10);
+
+  // 本葉
+  const nodes = [[0.30, 40, 1], [0.40, 48, -1], [0.52, 58, 1], [0.60, 66, -1], [0.70, 75, 1]];
+  nodes.forEach(([f, gg, side], i) => {
+    const k = clamp((s.growth - gg) / 14, 0, 1);
+    if (k <= 0) return;
+    const u = Math.min(1, f * maxH / g.h);
+    const p = stemPoint(g, u), sa = stemAngle(g, u);
+    const len = (42 - i * 3) * S * (0.25 + 0.75 * k);
+    const ang = sa + side * (1.0 + droopA) + Math.sin(t * 2 + i) * 0.06;
+    drawLeaf(p.x, p.y, ang, len, len * 0.38, i % 2 ? col : col2, true);
+  });
+
+  // 双葉
+  {
+    const k = clamp((s.growth - 8) / 20, 0, 1);
+    const open = clamp((s.growth - 18) / 10, 0, 1);
+    const nodeH = Math.min(g.h, maxH * 0.16);
+    const u = nodeH / g.h;
+    const p = stemPoint(g, u), sa = stemAngle(g, u);
+    const len = (12 + 16 * k) * S;
+    const spread = lerp(0.15, 1.25, open) + droopA * open;
+    for (const side of [-1, 1]) {
+      ctx.save();
+      ctx.translate(p.x, p.y); ctx.rotate(sa + side * spread);
+      ctx.beginPath(); ctx.ellipse(len * 0.5, 0, len * 0.55, len * 0.32, 0, 0, 7);
+      ctx.fillStyle = plantColor(8); ctx.fill();
+      ctx.strokeStyle = 'rgba(0,0,0,0.12)'; ctx.lineWidth = 1; ctx.stroke();
+      ctx.restore();
+    }
+  }
+
+  // つぼみ・花
+  const top = stemPoint(g, 1), ta = stemAngle(g, 1);
+  if (s.growth >= 76) {
+    const k = clamp((s.growth - 76) / 20, 0, 1);
+    const bt = s.bloomT;
+    ctx.save();
+    ctx.translate(top.x, top.y); ctx.rotate(ta + Math.PI / 2);
+    if (bt > 0) {
+      const e = 1 - Math.pow(1 - bt, 3);
+      const n = 8, pr = 22 * S * e;
+      for (let i = 0; i < n; i++) {
+        ctx.save();
+        ctx.rotate(i / n * Math.PI * 2 + t * 0.2);
+        ctx.fillStyle = i % 2 ? '#ff8fb3' : '#ffa8c5';
+        ctx.beginPath(); ctx.ellipse(0, -pr * 0.75, pr * 0.42, pr * 0.75, 0, 0, 7); ctx.fill();
+        ctx.restore();
+      }
+      ctx.fillStyle = '#ffd34d';
+      ctx.beginPath(); ctx.arc(0, 0, 8 * S * (0.5 + e * 0.5), 0, 7); ctx.fill();
+      ctx.fillStyle = '#e8a91f';
+      for (let i = 0; i < 6; i++) { const a = i / 6 * Math.PI * 2; ctx.beginPath(); ctx.arc(Math.cos(a) * 4 * S, Math.sin(a) * 4 * S, 1.2 * S, 0, 7); ctx.fill(); }
+    }
+    if (bt < 1) {
+      const sz = (5 + 9 * k) * S * (1 - bt * 0.7);
+      ctx.fillStyle = plantColor(2);
+      ctx.beginPath(); ctx.ellipse(0, -sz * 0.6, sz * 0.62, sz, 0, 0, 7); ctx.fill();
+      ctx.fillStyle = `rgba(255,130,170,${k * 0.9})`;
+      ctx.beginPath(); ctx.ellipse(0, -sz * 1.05, sz * 0.38, sz * 0.55, 0, 0, 7); ctx.fill();
+      ctx.fillStyle = plantColor(6);
+      for (const side of [-1, 1]) { ctx.beginPath(); ctx.ellipse(side * sz * 0.35, -sz * 0.35, sz * 0.25, sz * 0.6, side * 0.4, 0, 7); ctx.fill(); }
+    }
+    ctx.restore();
+  } else {
+    // 先端の新芽
+    const sz = 5 * S;
+    ctx.save(); ctx.translate(top.x, top.y); ctx.rotate(ta);
+    drawLeaf(0, 0, -0.35, sz * 2, sz * 0.9, plantColor(12), false);
+    drawLeaf(0, 0, 0.35, sz * 2, sz * 0.9, plantColor(12), false);
+    ctx.restore();
+  }
+}
+
+function drawBug(x, y, ang, ph, eating) {
+  const r = 6 * S;
+  ctx.save();
+  ctx.translate(x, y); ctx.rotate(ang);
+  for (let i = 3; i >= 0; i--) {
+    const wob = Math.sin(ph - i * 0.9) * 1.6 * S;
+    ctx.fillStyle = i === 0 ? '#6a8f1c' : (i % 2 ? '#a7cf3a' : '#93bd2c');
+    ctx.beginPath(); ctx.arc(-i * r * 1.2, wob, i === 0 ? r * 1.05 : r, 0, 7); ctx.fill();
+  }
+  ctx.fillStyle = '#222';
+  ctx.beginPath(); ctx.arc(r * 0.45, -r * 0.35, r * 0.22, 0, 7); ctx.fill();
+  ctx.beginPath(); ctx.arc(r * 0.45, r * 0.35, r * 0.22, 0, 7); ctx.fill();
+  ctx.strokeStyle = '#4b6614'; ctx.lineWidth = 1.2 * S;
+  ctx.beginPath(); ctx.moveTo(r * 0.6, -r * 0.6); ctx.lineTo(r * 1.4, -r * 1.2); ctx.moveTo(r * 0.6, r * 0.6); ctx.lineTo(r * 1.4, r * 1.2); ctx.stroke();
+  if (eating) {
+    ctx.fillStyle = 'rgba(255,255,255,0.9)';
+    ctx.font = `bold ${10 * S}px sans-serif`;
+    ctx.rotate(-ang);
+    ctx.fillText(Math.sin(ph * 0.5) > 0 ? 'もぐ' : 'もぐもぐ', 10 * S, -10 * S);
+  }
+  ctx.restore();
+}
+
+function drawCan() {
+  const sp = canSpout();
+  ctx.save();
+  ctx.translate(sp.x - 38 * S, sp.y + 4 * S);
+  ctx.rotate(0.35);
+  const s = S;
+  // 注ぎ口
+  ctx.strokeStyle = '#4f8fc4'; ctx.lineWidth = 5 * s; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(10 * s, 6 * s); ctx.lineTo(40 * s, -6 * s); ctx.stroke();
+  ctx.fillStyle = '#4f8fc4';
+  ctx.beginPath(); ctx.ellipse(41 * s, -6 * s, 3 * s, 5 * s, 0.4, 0, 7); ctx.fill();
+  // 取っ手
+  ctx.lineWidth = 4 * s;
+  ctx.beginPath(); ctx.arc(-14 * s, 0, 12 * s, Math.PI * 0.6, Math.PI * 1.5); ctx.stroke();
+  // 本体
+  ctx.fillStyle = '#6fb0e6';
+  ctx.beginPath();
+  ctx.moveTo(-16 * s, -12 * s); ctx.lineTo(14 * s, -12 * s); ctx.lineTo(18 * s, 16 * s); ctx.lineTo(-20 * s, 16 * s); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,0.35)';
+  ctx.fillRect(-12 * s, -8 * s, 5 * s, 20 * s);
+  ctx.restore();
+}
+
+// ---------- HUD ----------
+const el = { w: $('fWater'), s: $('fSun'), h: $('fHealth'), g: $('fGrow'), name: $('stageName'), time: $('timer') };
+[8, 25, 50, 80].forEach(v => {
+  const d = document.createElement('div'); d.className = 'tick'; d.style.left = v + '%'; $('growMeter').appendChild(d);
+});
+let lastStageName = '', lastSec = -1;
+function hud() {
+  el.w.style.width = st.water + '%';
+  el.s.style.width = st.sun + '%';
+  el.h.style.width = st.health + '%';
+  el.g.style.width = st.growth + '%';
+  const n = STAGES[st.stage].n;
+  if (n !== lastStageName) { lastStageName = n; el.name.textContent = '🌱 ' + n; }
+  const sec = Math.floor(st.t);
+  if (sec !== lastSec) { lastSec = sec; el.time.textContent = fmt(st.t); }
+}
+
+// ---------- ループ ----------
+newGame();
+let last = performance.now();
+function frame(now) {
+  let dt = (now - last) / 1000; last = now;
+  dt = Math.min(dt, 0.05);
+  st.at += dt; // 見た目用の時間（常に進む）
+  if (mode === 'play') update(dt);
+  updateCommon(dt);
+  draw();
+  if (mode === 'play' || mode === 'bloom' || mode === 'wilt') hud();
+  requestAnimationFrame(frame);
+}
+document.addEventListener('visibilitychange', () => { last = performance.now(); setWater(false); });
+requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
