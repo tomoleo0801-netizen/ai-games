@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>芽を育てるミニゲーム 4本｜トモヤAI自由研究室</title>
-<meta name="description" content="AI（Claude Code）が作った、芽を育てるミニゲーム4本。スマホでもパソコンでも遊べます。">
+<title>AIが作ったゲーム｜トモヤAI自由研究室</title>
+<meta name="description" content="AI（Claude Code）が作ったシューティング3本と、芽を育てるミニゲーム4本。スマホでもパソコンでも遊べます。">
 <style>
   :root { --bg:#ffffff; --ink:#1a1a1a; --sub:#555; --line:#dfe7df; --green:#0a7a2f; --card:#f5faf5; }
   @media (prefers-color-scheme: dark) {
@@ -28,6 +28,9 @@
   .play { display:inline-block; background:var(--green); color:#fff; font-weight:700;
           padding:8px 18px; border-radius:999px; font-size:15px; }
   @media (prefers-color-scheme: dark) { .play { color:#0b1a0b; } }
+  h2 { font-size:19px; margin:28px 0 4px; }
+  .sec { margin:0 0 12px; font-size:14px; color:var(--sub); }
+  .tag { display:inline-block; font-size:12px; border:1px solid var(--line); border-radius:6px; padding:0 6px; margin-left:6px; color:var(--sub); vertical-align:2px; }
   .notes { margin:24px 0 0; padding:0; list-style:none; font-size:13px; color:var(--sub); }
   .notes li { margin:4px 0; }
 </style>
@@ -35,9 +38,31 @@
 <body>
 <main>
   <p class="site">トモヤAI自由研究室</p>
-  <h1>芽を育てるミニゲーム 4本</h1>
-  <p class="lead">AI（Claude Code）が作ったミニゲームです。同じ頼み方で作った10本を遊んで、面白かった上位4本を集めました。スマホでもパソコンでも遊べます。</p>
+  <h1>AIが作ったゲーム</h1>
+  <p class="lead">AI（Claude Code）が作ったゲームを置いています。スマホでもパソコンでも、ブラウザで遊べます。</p>
 
+  <h2>シューティング<span class="tag">試作</span></h2>
+  <p class="sec">昔のゲーム機のような、ドット絵のシューティングです。どれも3つのステージとボスがあります。</p>
+  <ol>
+    <li><a class="card" href="tsubame/">
+      <span class="name">ツバメ迅撃隊</span>
+      <p class="how">縦シューティング。画面をなぞって機体を動かします。弾は自動で出ます。</p>
+      <span class="play">遊ぶ</span>
+    </a></li>
+    <li><a class="card" href="hoshikaze/">
+      <span class="name">ホシカゼ迎撃隊</span>
+      <p class="how">横シューティング。画面をなぞって機体を動かします。弾は自動で出ます。スマホは横向きがおすすめです。</p>
+      <span class="play">遊ぶ</span>
+    </a></li>
+    <li><a class="card" href="hanabi/">
+      <span class="name">ハナビ砲台</span>
+      <p class="how">空をタップすると、そこで弾が花火のようにはじけます。町に来る敵を撃ち落とします。</p>
+      <span class="play">遊ぶ</span>
+    </a></li>
+  </ol>
+
+  <h2>芽を育てるミニゲーム</h2>
+  <p class="sec">同じ頼み方で作った10本を遊んで、面白かった上位4本を集めました。</p>
   <ol>
     <li><a class="card" href="1/">
       <span class="rank">1位</span><span class="name">めばえ</span>
@@ -63,9 +88,10 @@
 
   <ul class="notes">
     <li>音が出ます。ゲームの中のボタンで消せます。</li>
-    <li>AI が作ったままのゲームです。人の手では直していません。</li>
+    <li>どれも AI が作ったままのゲームです。人の手では直していません。</li>
+    <li>シューティングは試作です。AI が自動で遊んで最後まで行けることは確かめましたが、人が遊んでの難しさの調整はまだです。</li>
     <li>ベスト記録は、遊んだ端末のブラウザの中にだけ残ります。</li>
-    <li>順位は、トモヤAI自由研究室が1人で遊んで付けた好みです。</li>
+    <li>芽のゲームの順位は、トモヤAI自由研究室が1人で遊んで付けた好みです。</li>
   </ul>
 </main>
 </body>
