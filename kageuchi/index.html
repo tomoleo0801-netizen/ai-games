@@ -38,6 +38,23 @@ html,body{margin:0;height:100%;overflow:hidden;background:#2a2140;color:var(--in
 .row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:16px;font-size:14px}
 .chip{font:inherit;font-size:14px;font-weight:700;border:2px solid var(--sub);background:#fff;border-radius:999px;padding:8px 14px;cursor:pointer;color:var(--ink);touch-action:manipulation}
 .best b{font-size:18px}
+.stages{display:flex;gap:8px;margin-top:14px}
+.stg{position:relative;flex:1;min-width:0;min-height:58px;border:2px solid var(--sub);background:#fff;border-radius:14px;font:inherit;color:var(--ink);cursor:pointer;touch-action:manipulation;
+  padding:6px 2px 5px;box-shadow:0 4px 0 #d8cfe8;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+.stg b{font-size:19px;font-weight:900;line-height:1.15}
+.stg small{font-size:11px;font-weight:700;color:#7b7290;line-height:1.2;white-space:nowrap}
+.stg:active{transform:translateY(2px);box-shadow:0 2px 0 #d8cfe8}
+.stg.on{color:#fff}
+.stg.on small{color:rgba(255,255,255,.88)}
+.stg.on[data-s="1"]{background:#3e9b5f;border-color:#3e9b5f;box-shadow:0 4px 0 #2a6e42}
+.stg.on[data-s="2"]{background:#4f7fc4;border-color:#4f7fc4;box-shadow:0 4px 0 #345a91}
+.stg.on[data-s="3"]{background:#8b3a52;border-color:#8b3a52;box-shadow:0 4px 0 #5e2236}
+.stg .ok{position:absolute;top:-9px;right:-5px;background:#ffe066;color:var(--ink);font-size:10px;font-weight:900;font-style:normal;border-radius:999px;padding:1px 6px;line-height:1.5;box-shadow:0 1px 0 rgba(42,33,64,.25)}
+.stinfo{font-size:13px;line-height:1.55;margin:10px 0 0;color:#5a5070;min-height:3.1em}
+.rstage{display:inline-block;color:#fff;border-radius:999px;padding:2px 14px;font-size:14px;font-weight:900;margin:0 0 6px;background:#4f7fc4}
+.rstage.s1{background:#3e9b5f}.rstage.s3{background:#8b3a52}
+.brow{display:flex;gap:10px}
+.brow .btn{flex:1;min-width:0}
 .note{font-size:12px;color:#7b7290;margin:12px 0 0;line-height:1.6}
 h2{margin:2px 0 10px;font-size:24px}
 .how ol{text-align:left;margin:8px 0 0;padding-left:1.4em;font-size:15px;line-height:1.65}
@@ -64,6 +81,12 @@ table.res td:last-child{text-align:right;font-weight:800}
   .btn{min-height:46px;font-size:18px;margin-top:10px}
   .btn.sub{min-height:42px;font-size:16px}
   .row{margin-top:10px}
+  .stages{margin-top:4px}
+  .stg{min-height:46px;padding:4px 2px}
+  .stg b{font-size:17px}
+  .stinfo{font-size:12px;margin-top:8px;min-height:0}
+  .note{margin-top:8px}
+  .rstage{font-size:13px;margin-bottom:2px}
   .score{font-size:44px}
   .rank{margin-top:8px}
   table.res{font-size:14px;margin-top:0}
@@ -93,10 +116,16 @@ table.res td:last-child{text-align:right;font-weight:800}
     <p class="sub-t">KAGE-UCHI</p>
     <p class="lead">空のどろぼうには、撃っても当たらない。<br><b>地面に落ちたかげ</b>を撃つと、落ちてくる。</p>
     </div><div class="cb">
+    <div class="stages" role="group" aria-label="面をえらぶ">
+      <button class="stg" data-s="1" aria-pressed="false"><b>初級</b><small>はじめて</small></button>
+      <button class="stg" data-s="2" aria-pressed="false"><b>中級</b><small>ふつう</small></button>
+      <button class="stg" data-s="3" aria-pressed="false"><b>上級</b><small>むずかしい</small></button>
+    </div>
+    <p class="stinfo" id="vStInfo"></p>
     <button id="bStart" class="btn">あそぶ</button>
     <button id="bHow" class="btn sub">あそびかた</button>
     <div class="row"><button id="bSnd" class="chip">音：オン</button><span class="best">さいこう記録 <b id="vBest">0</b></span></div>
-    <p class="note" id="vNote">朝6時から夕方6時まで、畑のかぶを守ろう。</p>
+    <p class="note" id="vNote">日がくれるまで、かぶを 1こでも 守れば クリア。</p>
     </div>
   </div>
 </section>
@@ -132,6 +161,7 @@ table.res td:last-child{text-align:right;font-weight:800}
       <li>かぶを持って逃げるどろぼうも、かげを撃てば<b>取り返せる</b>。</li>
       <li>白い鳥はなかま。<b>鳥の形のかげ</b>は撃たないで。</li>
       <li>くものかげの中では、かげが見えない。くぎ（たま）は6本。少し待つと戻る。</li>
+      <li>日がくれるまで、かぶを <b>1こでも</b> 守れば クリア。</li>
     </ol>
     <button id="bHowBack" class="btn">わかった</button>
   </div>
@@ -141,6 +171,7 @@ table.res td:last-child{text-align:right;font-weight:800}
   <div class="panel">
     <h2>ひと休み</h2>
     <p class="lead">お日さまも止まっています。</p>
+    <p class="note" id="vPauseSt"></p>
     <button id="bResume" class="btn">つづける</button>
     <button id="bQuit" class="btn sub">やめてタイトルへ</button>
   </div>
@@ -149,6 +180,7 @@ table.res td:last-child{text-align:right;font-weight:800}
 <section id="sResult" class="screen hidden">
   <div class="panel two">
     <div class="ca">
+    <span id="rStage" class="rstage">中級</span>
     <h2 id="rTitle">日がくれた！</h2>
     <p class="res-sub" id="rSub"></p>
     <div class="score" id="rScore">0</div>
@@ -162,8 +194,8 @@ table.res td:last-child{text-align:right;font-weight:800}
       <tr><td>最大コンボ</td><td id="rCombo">0</td></tr>
       <tr><td>鳥のかげを撃った</td><td id="rBird">0</td></tr>
     </table>
-    <button id="bRetry" class="btn">もう一回</button>
-    <button id="bToTitle" class="btn sub">タイトルへ</button>
+    <button id="bNext" class="btn hidden">次の面へ</button>
+    <div class="brow"><button id="bRetry" class="btn">もう一回</button><button id="bToTitle" class="btn sub">タイトルへ</button></div>
     </div>
   </div>
 </section>
@@ -179,12 +211,39 @@ const TEST=Q.get('test')==='1';
 const TAU=Math.PI*2;
 const FONT='system-ui,-apple-system,"Hiragino Maru Gothic ProN","Hiragino Sans","Yu Gothic UI","Meiryo",sans-serif';
 const clamp=(v,a,b)=>v<a?a:v>b?b:v, lerp=(a,b,t)=>a+(b-a)*t, rand=(a,b)=>a+Math.random()*(b-a);
-const DAY=90, AMMO_MAX=6, AMMO_REGEN=0.42, VEG_BONUS=300;
+const DAY=90, AMMO_MAX=6, VEG_BONUS=300;
+// 3 stages. Stage 2 (中級) keeps the numbers of the one-day game before 強化1.
+// iv: spawn interval [start, end of day, after 80s]; cap: max thieves in the air = cap[0]+floor(p*cap[1]);
+// haya: [from p, chance at p=0, + per p]; spd: speed of thieves; bird: [first at s, every min..max s], pair: chance of a second bird;
+// cloud: [from s, until s], cloudIv: every min..max s, cloudMax; boss: times (s) of おおどろ, bossHp: shots needed;
+// regen: s per nail; sh: shadow length [noon, + toward morning/evening]; arc: sun height in the sky; rankK: title score lines x.
+const STAGES=[null,
+ {name:'初級',info:'どろぼうは 少なめで ゆっくり。かげは 短め。',first:'初級。朝6時、畑の かぶを 守ろう！',
+  iv:[3.0,1.5,1.15],cap:[2,5],haya:[0.4,0.05,0.15],spd:0.85,weave:0.3,
+  bird0:20,bird:[10,15],pair:0,cloud:[30,70],cloudIv:[14,20],cloudMax:1,
+  boss:[57],bossHp:2,regen:0.36,sh:[0.26,0.9],arc:1,rankK:0.7,tint:0},
+ {name:'中級',info:'いつもの 1日。はやどろも おおどろも 来る。',first:'中級。朝6時、畑の かぶを 守ろう！',
+  iv:[2.5,1.05,0.8],cap:[3,6],haya:[0.22,0.12,0.3],spd:1,weave:0.35,
+  bird0:14,bird:[7,12],pair:0,cloud:[26,74],cloudIv:[9,14],cloudMax:2,
+  boss:[57],bossHp:3,regen:0.42,sh:[0.3,1.05],arc:1,rankK:1,tint:0},
+ {name:'上級',info:'ふゆの 1日。かげが 長く、どろぼうが 多くて 速い。',first:'上級。ふゆの 日は かげが 長いぞ！',
+  iv:[2.0,0.8,0.6],cap:[4,7],haya:[0.08,0.22,0.33],spd:1.2,weave:0.5,
+  bird0:10,bird:[5,9],pair:0.4,cloud:[16,84],cloudIv:[7,11],cloudMax:3,
+  boss:[40,70],bossHp:4,regen:0.42,sh:[0.42,1.15],arc:0.68,rankK:1.4,tint:0.5}
+];
 
 const store={
   get(k,d){try{const v=localStorage.getItem(k);return v===null?d:v;}catch(e){return d;}},
   set(k,v){try{localStorage.setItem(k,String(v));}catch(e){}}
 };
+// Records are kept per stage. The record from before 強化1 (one stage, same as 中級) is shown as 中級's.
+const SAVE=!TEST||Q.get('save')==='1';
+function getBest(n){let v=store.get('kageuchi_best_s'+n,null);if(v===null&&n===2) v=store.get('kageuchi_best','0');return parseInt(v||'0',10)||0;}
+function isCleared(n){return store.get('kageuchi_clear_s'+n,'0')==='1';}
+function firstStage(){
+  let n=parseInt(TEST&&Q.get('stage')?Q.get('stage'):store.get('kageuchi_stage','1'),10);
+  return n>=1&&n<=3?n:1;
+}
 
 /* ---------- canvas & layout ---------- */
 const cv=$('cv'), ctx=cv.getContext('2d');
@@ -221,12 +280,13 @@ function maxH(z,f){const ds=dsOf(z);return Math.max(0.08,(syOf(z)-sizeOf(f||{siz
 
 /* ---------- sun ---------- */
 function sunAt(p){
+  const S=ST();
   const q=0.08+0.84*clamp(p,0,1), ang=Math.PI*q;
   const sx=-Math.cos(ang), el=Math.sin(ang);
-  const len=0.3+(1-el)*1.05;
+  const len=S.sh[0]+(1-el)*S.sh[1];
   let vx=-sx, vy=0.55; const n=Math.hypot(vx,vy); vx/=n; vy/=n;
   const kx=clamp((W/U)/1.6,0.62,1);
-  return {q,sx,el,len,shX:vx*len*kx,shY:vy*len,ang2:Math.atan2(vy*len*2,vx*len*kx)};
+  return {q,sx,el,len,arc:S.arc,shX:vx*len*kx,shY:vy*len,ang2:Math.atan2(vy*len*2,vx*len*kx)};
 }
 
 /* ---------- palette ---------- */
@@ -239,10 +299,12 @@ const PAL=[
  [0.92,'#e0815e','#ffc786','#c4b46c','#7a8442','#94674a'],
  [1.00,'#5d4a8c','#e98a66','#8f8a63','#555f3c','#6e5040']
 ].map(r=>[r[0]].concat(r.slice(1).map(hex)));
+const WINTER=hex('#c4b07e'); // dry winter grass, mixed into the ground on 上級
 function palC(p,i,a){
   let k=0; while(k<PAL.length-2&&p>PAL[k+1][0]) k++;
   const A=PAL[k],B=PAL[k+1],t=clamp((p-A[0])/(B[0]-A[0]),0,1);
-  const c=A[i].map((v,j)=>Math.round(lerp(v,B[i][j],t)));
+  let c=A[i].map((v,j)=>Math.round(lerp(v,B[i][j],t)));
+  const tn=ST().tint; if(tn&&(i===3||i===4)) c=c.map((v,j)=>Math.round(lerp(v,WINTER[j],tn)));
   return a==null?'rgb('+c+')':'rgba('+c+','+a+')';
 }
 
@@ -345,8 +407,9 @@ function unlockAudio(){audioInit();if(ac&&!bgm.on&&(game.state==='title'||game.s
 
 /* ---------- state ---------- */
 const vegs=[]; let flyers=[],parts=[],pops=[],pegs=[],clouds=[];
-const game={state:'title',t:0,nextId:1};
-let timeScale=1,autoOn=false,autoT=0,demoT=0,tAll=0,sunNow=sunAt(0.5);
+const game={state:'title',t:0,nextId:1,stage:firstStage()};
+function ST(){return STAGES[game.stage]||STAGES[2];}
+let timeScale=1,autoOn=false,autoT=0,autoIv=0.2,autoMiss=0,demoT=0,tAll=0,sunNow=sunAt(0.5);
 const pointer={x:0,y:0,inside:false,type:'mouse'};
 let TUFTS=[];
 (function(){let s=7;const r=()=>{s=(s*16807)%2147483647;return s/2147483647;};for(let i=0;i<70;i++) TUFTS.push({x:r(),z:0.03+r()*0.95,k:r()});})();
@@ -354,7 +417,7 @@ let TUFTS=[];
 function resetGame(){
   Object.assign(game,{t:0,score:0,combo:0,maxCombo:0,downs:0,rescued:0,birdHits:0,stolen:0,shots:0,
     ammo:AMMO_MAX,ammoT:0,spawnT:3,birdT:4,cloudT:2,endT:0,reason:'',firstHit:false,tutF:null,msg:null,
-    shake:0,throughMsg:0,flags:{},tl:0,streak:null,final:0});
+    shake:0,throughMsg:0,flags:{},tl:0,streak:null,final:0,bossN:0,clear:false,spawned:{dor:0,haya:0,oo:0,tori:0}});
   flyers=[];parts=[];pops=[];pegs=[];clouds=[];
   vegs.length=0; for(let i=0;i<6;i++) vegs.push({state:'ok',claim:null,pop:0});
 }
@@ -374,7 +437,7 @@ function chooseTarget(f){
   sc.sort((a,b)=>a.v-b.v);
   return sc[0].i;
 }
-function baseFlyer(kind){return {id:game.nextId++,kind,t:0,wing:Math.random()*6,h:0,vh:0,spin:0,sdir:1,alpha:1,flash:0,carry:null,hp:kind==='oo'?3:1,face:1,target:-1,size:kind==='oo'?1.7:kind==='haya'?0.85:kind==='tori'?0.95:1};}
+function baseFlyer(kind){const hp=kind==='oo'?ST().bossHp:1;return {id:game.nextId++,kind,t:0,wing:Math.random()*6,h:0,vh:0,spin:0,sdir:1,alpha:1,flash:0,carry:null,hp,hpMax:hp,face:1,target:-1,size:kind==='oo'?1.7:kind==='haya'?0.85:kind==='tori'?0.95:1};}
 function spawnThief(kind,opt){
   opt=opt||{};
   const f=baseFlyer(kind); f.state='cruise';
@@ -385,19 +448,24 @@ function spawnThief(kind,opt){
   else if(r<0.35){f.x=-0.12;f.z=rand(0.12,0.7);}
   else if(r<0.7){f.x=1.12;f.z=rand(0.12,0.7);}
   else {f.x=rand(0.12,0.88);f.z=0.02;}
-  const d=game.t/DAY;
+  const d=game.t/DAY, k=opt.first?1:ST().spd;
   f.h0=kind==='oo'?0.52:kind==='haya'?rand(0.42,0.55):rand(0.32,0.5);
   f.h=f.h0;
-  f.spd=opt.first?0.14:kind==='oo'?0.13:kind==='haya'?0.42+0.12*d:0.2+0.1*d;
-  f.dive=opt.first?0.06:kind==='oo'?0.05:kind==='haya'?0.26+0.06*d:0.1+0.05*d;
+  f.spd=(opt.first?0.14:kind==='oo'?0.13:kind==='haya'?0.42+0.12*d:0.2+0.1*d)*k;
+  f.dive=(opt.first?0.06:kind==='oo'?0.05:kind==='haya'?0.26+0.06*d:0.1+0.05*d)*k;
   f.weave=rand(0,TAU); f.face=f.x<0.5?1:-1;
-  flyers.push(f); return f;
+  flyers.push(f); if(game.spawned[kind]!=null) game.spawned[kind]++; return f;
 }
-function spawnBird(){
+function spawnBird(lead){
   const f=baseFlyer('tori'); f.state='cross';
+  if(lead){ // a second bird flying just behind the first one (上級)
+    f.dir=lead.dir; f.x=lead.x-lead.dir*rand(0.07,0.12); f.z=clamp(lead.z+rand(-0.12,0.12),0.12,0.8);
+    f.h=clamp(lead.h+rand(-0.06,0.06),0.24,0.5); f.spd=lead.spd; f.dz=lead.dz; f.face=f.dir;
+  } else {
   f.dir=Math.random()<0.5?1:-1; f.x=f.dir>0?-0.18:1.18; f.z=rand(0.18,0.75);
   f.h=rand(0.28,0.48); f.spd=rand(0.3,0.42); f.dz=rand(-0.03,0.03); f.face=f.dir;
-  flyers.push(f);
+  }
+  flyers.push(f); game.spawned.tori++;
   if(!game.flags.birdIntro){game.flags.birdIntro=true;showMsg('白い鳥は なかま。鳥の形の かげは 撃たないで',3);}
   return f;
 }
@@ -408,33 +476,36 @@ function spawnCloud(){
 }
 function isThreat(f){return f.kind!=='tori'&&(f.state==='cruise'||f.state==='dive');}
 function bossAlive(){return flyers.some(f=>f.kind==='oo'&&(f.state==='cruise'||f.state==='dive'||f.state==='escape'));}
-const TL=[[0.4,'朝6時。畑の かぶを 守ろう！',2.6],[45,'お昼。かげが いちばん 短い',2.4],[67,'かげが のびてきた…',2.2],[80,'日がしずむ！ かげが 長いぞ',2.4],[86,'あと少し！',1.6]];
+const TL=[[0.4,null,2.6],[45,'お昼。かげが いちばん 短い',2.4],[67,'かげが のびてきた…',2.2],[80,'日がしずむ！ かげが 長いぞ',2.4],[86,'あと少し！',1.6]];
 function spawner(dt){
-  const t=game.t,p=t/DAY;
-  while(game.tl<TL.length&&t>=TL[game.tl][0]){showMsg(TL[game.tl][1],TL[game.tl][2]);game.tl++;}
+  const t=game.t,p=t/DAY,S=ST();
+  while(game.tl<TL.length&&t>=TL[game.tl][0]){showMsg(TL[game.tl][1]||S.first,TL[game.tl][2]);game.tl++;}
   if(!game.flags.first&&t>1.6){game.flags.first=true;game.tutF=spawnThief('dor',{first:true});}
   if(t>6){
     game.spawnT-=dt;
     if(game.spawnT<=0){
-      let iv=lerp(2.5,1.05,p); if(t>80) iv=0.8; if(bossAlive()) iv*=1.35;
+      let iv=lerp(S.iv[0],S.iv[1],p); if(t>80) iv=S.iv[2]; if(bossAlive()) iv*=1.35;
       game.spawnT=iv*rand(0.75,1.25);
       const n=flyers.filter(isThreat).length;
-      if(n<3+Math.floor(p*6)){
-        const kind=(p>0.22&&Math.random()<0.12+0.3*p)?'haya':'dor';
+      if(n<S.cap[0]+Math.floor(p*S.cap[1])){
+        const kind=(p>S.haya[0]&&Math.random()<S.haya[1]+S.haya[2]*p)?'haya':'dor';
         spawnThief(kind);
       }
     }
   }
-  if(t>14){game.birdT-=dt;if(game.birdT<=0){game.birdT=rand(7,12);spawnBird();}}
-  if(t>26&&t<74){game.cloudT-=dt;if(game.cloudT<=0){game.cloudT=rand(9,14);if(clouds.length<2) spawnCloud();}}
-  if(!game.flags.boss&&t>=57){game.flags.boss=true;if(spawnThief('oo')){showMsg('おおどろ が来た！ かげを 3回 撃とう',3);sfx.boss();}}
+  if(t>S.bird0){game.birdT-=dt;if(game.birdT<=0){game.birdT=rand(S.bird[0],S.bird[1]);const b=spawnBird();if(S.pair>0&&Math.random()<S.pair) spawnBird(b);}}
+  if(t>S.cloud[0]&&t<S.cloud[1]){game.cloudT-=dt;if(game.cloudT<=0){game.cloudT=rand(S.cloudIv[0],S.cloudIv[1]);if(clouds.length<S.cloudMax) spawnCloud();}}
+  if(game.bossN<S.boss.length&&t>=S.boss[game.bossN]){
+    game.bossN++;
+    if(spawnThief('oo')){showMsg((game.bossN>1?'また おおどろ！':'おおどろ が来た！')+' かげを '+S.bossHp+'回 撃とう',3);sfx.boss();}
+  }
 }
 
 /* ---------- updates ---------- */
 function steal(f){
   const v=vegs[f.target]; v.claim=null; v.state='carried'; f.carry=f.target; f.target=-1;
   f.state='escape'; f.ex=f.x<0.5?-1:1; f.face=f.ex;
-  f.rise=f.kind==='oo'?0.1:f.kind==='haya'?0.22:0.16; f.espd=f.kind==='oo'?0.16:0.28;
+  f.rise=f.kind==='oo'?0.1:f.kind==='haya'?0.22:0.16; f.espd=(f.kind==='oo'?0.16:0.28)*ST().spd;
   game.stolen++; sfx.steal();
   const P=L.veg[f.carry]; addDust(sxOf(P.x),syOf(P.z),6);
   if(!game.flags.stealTip){game.flags.stealTip=true;showMsg('かぶを とられた！ 逃げる かげを 撃てば 取り返せる',3);}
@@ -464,7 +535,7 @@ function updFlyer(f,dt){
     const hc=Math.min(f.h0,maxH(f.z,f)); f.h+=(hc-f.h)*Math.min(1,dt*1.5);
     if(d<0.025){f.state='dive';v.claim=f.id;break;}
     const st=Math.min(d,f.spd*dt), nx=dx/d, nz=dz/d;
-    const w=Math.sin(f.t*2.2+f.weave)*0.35*Math.min(1,d/0.4);
+    const w=Math.sin(f.t*2.2+f.weave)*ST().weave*Math.min(1,d/0.4);
     const mx=nx*st-nz*w*f.spd*dt, mz=nz*st+nx*w*f.spd*dt;
     f.x+=mx*kx; f.z+=mz*kz; if(Math.abs(mx)>1e-4) f.face=mx>0?1:-1;
     break;}
@@ -519,7 +590,8 @@ function update(dt){
     game.t+=dt;
     if(TEST&&autoOn) autoStep(dt);
     spawner(dt);
-    if(game.ammo<AMMO_MAX){game.ammoT+=dt;while(game.ammoT>=AMMO_REGEN&&game.ammo<AMMO_MAX){game.ammo++;game.ammoT-=AMMO_REGEN;}}
+    const RG=ST().regen;
+    if(game.ammo<AMMO_MAX){game.ammoT+=dt;while(game.ammoT>=RG&&game.ammo<AMMO_MAX){game.ammo++;game.ammoT-=RG;}}
     if(game.ammo>=AMMO_MAX) game.ammoT=0;
     if(vegs.every(v=>v.state==='lost')) endDay('lost');
     else if(game.t>=DAY){game.t=DAY;endDay('day');}
@@ -613,8 +685,9 @@ function hitBird(f,x,y){
 }
 
 /* ---------- auto play (test only) ---------- */
+// autoIv: seconds between shots (default 0.2). autoMiss: chance that a shot lands off the shadow (for a slower, "beginner-like" check).
 function autoStep(dt){
-  autoT-=dt; if(autoT>0) return; autoT=0.2;
+  autoT-=dt; if(autoT>0) return; autoT=autoIv;
   if(game.ammo<1) return;
   const sun=sunNow;
   const c=flyers.filter(f=>f.kind!=='tori'&&hittable(f,sun));
@@ -622,6 +695,7 @@ function autoStep(dt){
   const pr=f=>(f.state==='escape'?0:f.state==='dive'?1:2)+f.h;
   c.sort((a,b)=>pr(a)-pr(b));
   const sp=shadowPos(c[0],sun);
+  if(autoMiss>0&&Math.random()<autoMiss){const a=rand(0,TAU),r=SU*rand(2.2,3.5);shoot(sp.x+Math.cos(a)*r,sp.y+Math.sin(a)*r*0.6,false);return;}
   shoot(sp.x+rand(-2,2),sp.y+rand(-2,2),false);
 }
 
@@ -759,7 +833,8 @@ function drawFlyerBody(f){
     ctx.restore();
   }
   if(f.kind==='oo'&&f.hp>0&&(f.state==='cruise'||f.state==='dive'||f.state==='escape')){
-    for(let i=0;i<3;i++){ctx.fillStyle=i<f.hp?'#ff5d73':'rgba(255,255,255,0.4)';ctx.beginPath();ell(x+(i-1)*s*0.42,y-s*1.75,s*0.13,s*0.13);ctx.fill();}
+    const hm=f.hpMax||3;
+    for(let i=0;i<hm;i++){ctx.fillStyle=i<f.hp?'#ff5d73':'rgba(255,255,255,0.4)';ctx.beginPath();ell(x+(i-(hm-1)/2)*s*0.42,y-s*1.75,s*0.13,s*0.13);ctx.fill();}
   }
 }
 function star(x,y,r){ctx.beginPath();for(let i=0;i<10;i++){const a=i/10*TAU-Math.PI/2,rr2=i%2?r*0.45:r;ctx.lineTo(x+Math.cos(a)*rr2,y+Math.sin(a)*rr2);}ctx.closePath();ctx.fill();}
@@ -840,7 +915,7 @@ function render(){
   // sky
   let g=ctx.createLinearGradient(0,0,0,GT+2); g.addColorStop(0,palC(p,1)); g.addColorStop(1,palC(p,2));
   ctx.fillStyle=g; ctx.fillRect(-20,-20,W+40,GT+22);
-  const sunX=W*sun.q, sunY=GT-SKY*0.12-Math.sin(Math.PI*sun.q)*SKY*0.46;
+  const sunX=W*sun.q, sunY=GT-SKY*0.12-Math.sin(Math.PI*sun.q)*SKY*0.46*sun.arc;
   const sg=ctx.createRadialGradient(sunX,sunY,0,sunX,sunY,SU*1.6);
   const warm=clamp((p-0.75)/0.25,0,1);
   sg.addColorStop(0,'rgba(255,250,210,0.95)'); sg.addColorStop(0.3,'rgba(255,'+Math.round(lerp(220,150,warm))+',90,0.55)'); sg.addColorStop(1,'rgba(255,200,90,0)');
@@ -925,7 +1000,7 @@ function drawHUD(p,sunX,sunY,sun){
   const pw=SU*0.36, n=AMMO_MAX, x0=W/2-(n-1)*pw/2;
   rr(x0-pw*0.9,by-SU*0.42,(n-1)*pw+pw*1.8,SU*0.84,SU*0.3); ctx.fillStyle='rgba(42,33,64,0.45)'; ctx.fill();
   for(let i=0;i<n;i++){
-    const x=x0+i*pw; const full=i<game.ammo; const part=(i===game.ammo)?game.ammoT/AMMO_REGEN:0;
+    const x=x0+i*pw; const full=i<game.ammo; const part=(i===game.ammo)?game.ammoT/ST().regen:0;
     ctx.fillStyle=full?'#e8b070':'rgba(255,255,255,0.18)'; rr(x-pw*0.17,by-SU*0.28,pw*0.34,SU*0.5,pw*0.12); ctx.fill();
     if(full){ctx.fillStyle='#8a5a2b';ctx.beginPath();ell(x,by-SU*0.28,pw*0.26,pw*0.12);ctx.fill();}
     else if(part>0){ctx.fillStyle='rgba(232,176,112,0.6)';rr(x-pw*0.17,by-SU*0.28+SU*0.5*(1-part),pw*0.34,SU*0.5*part,pw*0.1);ctx.fill();}
@@ -933,6 +1008,7 @@ function drawHUD(p,sunX,sunY,sun){
   const ok=vegs.filter(v=>v.state==='ok').length;
   drawTurnip(SU*0.75,by+SU*0.12,SU*0.55);
   txt('×'+ok,SU*1.15,by,SU*0.48,'left',ok<=2?'#ffb3b3':'#fff','middle');
+  txt(ST().name,W-SU*0.4,by,SU*0.4,'right','#fff','middle');
   if(game.msg){
     const m=game.msg, a=clamp(Math.min(m.t/0.2,(m.dur-m.t)/0.3),0,1);
     ctx.save(); ctx.globalAlpha=a; pill(W/2,GT+SU*0.75,m.text,'rgba(42,33,64,0.82)','#fff',clamp(SU*0.42,13,22)); ctx.restore();
@@ -965,7 +1041,13 @@ function setupDemo(){
     const f=baseFlyer(kind); Object.assign(f,{state:'demo',cx,cz,h0,h:h0,w,r:0.25,ang:Math.random()*TAU}); f.x=cx; f.z=cz; flyers.push(f);
   }
 }
-function startGame(){
+function setStage(n){
+  if(!(n>=1&&n<=3)) return;
+  game.stage=n; if(SAVE) store.set('kageuchi_stage',n);
+  refreshBest();
+}
+function startGame(n){
+  if(n>=1&&n<=3) setStage(n);
   audioInit(); resetGame(); game.state='play';
   if(TEST&&Q.get('at')) game.t=clamp(parseFloat(Q.get('at'))||0,0,DAY-1);
   if(game.t>0){game.flags.first=true;game.firstHit=true;while(game.tl<TL.length&&TL[game.tl][0]<=game.t) game.tl++;}
@@ -973,32 +1055,41 @@ function startGame(){
   bgmStart('play');
   sfx.start();
 }
-function pauseGame(){if(game.state!=='play')return;game.state='pause';bgmStop();showScreen('sPause');}
+function pauseGame(){if(game.state!=='play')return;game.state='pause';bgmStop();$('vPauseSt').textContent='いまの面：'+ST().name;showScreen('sPause');}
 function resumeGame(){if(game.state!=='pause')return;game.state='play';bgm.on=true;if(ac) bgm.next=ac.currentTime+0.05;showScreen(null);}
 function toTitle(){game.state='title';bgmStart('title');resetGame();setupDemo();refreshBest();showScreen('sTitle');}
 function endDay(reason){
   if(game.state!=='play') return;
   game.state='dusk'; game.reason=reason; game.endT=0; bgmStop();
   for(const f of flyers){if(f.state==='cruise'||f.state==='dive'||f.state==='escape'||f.state==='cross'){if(f.state==='dive'){const v=vegs[f.target];if(v) v.claim=null;}f.state='flee';f.ex=f.x<0.5?-1:1;}}
-  showMsg(reason==='lost'?'かぶが ぜんぶ とられた…':'日がくれた！',2.4);
+  // Clear rule: the sun sets with at least 1 turnip left. (Turnips still being carried away now are lost.)
+  const okNow=vegs.filter(v=>v.state==='ok').length;
+  showMsg(reason==='lost'?'かぶが ぜんぶ とられた…':okNow>0?'日がくれた！ クリア！':'日がくれた… かぶが のこらなかった',2.4);
   sfx.end(); showScreen(null);
 }
-function rankOf(s){
-  if(s>=15000) return 'おひさまも おどろく かげ撃ち';
-  if(s>=10000) return 'かげ撃ち 名人';
-  if(s>=6000) return 'かげ撃ち 一人前';
-  if(s>=3000) return 'かげ撃ち 見ならい';
+function rankOf(s,k){
+  if(s>=15000*k) return 'おひさまも おどろく かげ撃ち';
+  if(s>=10000*k) return 'かげ撃ち 名人';
+  if(s>=6000*k) return 'かげ撃ち 一人前';
+  if(s>=3000*k) return 'かげ撃ち 見ならい';
   return 'まずは かげを よく見よう';
 }
 function showResult(){
   for(const f of flyers) if(f.carry!=null){vegs[f.carry].state='lost';f.carry=null;}
   game.state='result';
+  const n=game.stage, S=ST();
   const ok=vegs.filter(v=>v.state==='ok').length, bonus=ok*VEG_BONUS, total=game.score+bonus;
   game.final=total;
-  const best=parseInt(store.get('kageuchi_best','0'),10)||0, isNew=total>best;
-  if(isNew&&!TEST) store.set('kageuchi_best',total);
-  $('rTitle').textContent=game.reason==='lost'?'かぶが ぜんぶ とられた…':'日がくれた！';
-  $('rSub').textContent=game.reason==='lost'?'つぎは 逃げる かげも ねらおう':'かぶを '+ok+'こ 守りきった';
+  const clear=game.reason==='day'&&ok>0; game.clear=clear;
+  const best=getBest(n), isNew=total>best;
+  if(SAVE){if(isNew) store.set('kageuchi_best_s'+n,total); if(clear) store.set('kageuchi_clear_s'+n,'1');}
+  $('rStage').textContent=S.name; $('rStage').className='rstage s'+n;
+  $('rTitle').textContent=clear?'クリア！':game.reason==='lost'?'かぶが ぜんぶ とられた…':'かぶが のこらなかった…';
+  $('rSub').innerHTML=clear?(n===3?'かぶを '+ok+'こ 守りきった。おみごと！':'日がくれるまで かぶを '+ok+'こ 守りきった'):'かぶを 1こでも 守れば クリア。<br>逃げる かげも ねらおう';
+  const next=clear&&n<3;
+  $('bNext').classList.toggle('hidden',!next);
+  if(next) $('bNext').textContent='次の面へ（'+STAGES[n+1].name+'）';
+  $('bRetry').classList.toggle('sub',next);
   $('rScore').textContent=total;
   $('rNew').classList.toggle('hidden',!isNew);
   $('rDown').textContent=game.downs+'ひき';
@@ -1006,11 +1097,23 @@ function showResult(){
   $('rVeg').textContent=ok+'こ （+'+bonus+'）';
   $('rCombo').textContent=game.maxCombo;
   $('rBird').textContent=game.birdHits+'回';
-  $('rRank').innerHTML='<small>きょうの 称号</small>'+rankOf(total);
+  $('rRank').innerHTML='<small>きょうの 称号</small>'+rankOf(total,S.rankK);
   showScreen('sResult');
   bgmStart('title');
 }
-function refreshBest(){$('vBest').textContent=parseInt(store.get('kageuchi_best','0'),10)||0;}
+function refreshBest(){
+  const n=game.stage;
+  $('vBest').textContent=getBest(n);
+  for(const b of document.querySelectorAll('.stg')){
+    const s=+b.dataset.s, on=s===n;
+    b.classList.toggle('on',on); b.setAttribute('aria-pressed',on?'true':'false');
+    let ok=b.querySelector('.ok'); const cl=isCleared(s);
+    if(cl&&!ok){ok=document.createElement('i');ok.className='ok';ok.textContent='クリア';b.appendChild(ok);}
+    else if(!cl&&ok) ok.remove();
+  }
+  $('vStInfo').textContent=ST().info;
+  $('bStart').textContent=ST().name+'を あそぶ';
+}
 const ICON_ON='<svg viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16 8.5a5 5 0 0 1 0 7" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M18.5 6a8.5 8.5 0 0 1 0 12" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></svg>';
 const ICON_OFF='<svg viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16 9l6 6M22 9l-6 6" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>';
 function updateSndUI(){$('bSnd').textContent=muted?'音：オフ':'音：オン';$('bMute').innerHTML=muted?ICON_OFF:ICON_ON;}
@@ -1041,15 +1144,24 @@ on('bPause',()=>{sfx.click();pauseGame();});
 on('bResume',()=>{sfx.click();resumeGame();});
 on('bQuit',()=>{sfx.click();toTitle();});
 on('bRetry',()=>{startGame();});
+on('bNext',()=>{if(game.stage<3) startGame(game.stage+1);});
 on('bToTitle',()=>{sfx.click();toTitle();});
+for(const b of document.querySelectorAll('.stg')){
+  b.addEventListener('click',e=>{e.preventDefault();audioInit();sfx.click();setStage(+b.dataset.s);});
+}
 window.addEventListener('keydown',e=>{
   const k=e.key;
   if((k===' '||k==='Enter')&&e.target&&e.target.tagName==='BUTTON') return;
+  const onTitle=game.state==='title'&&$('sHow').classList.contains('hidden');
   if(k===' '||k==='Enter'){
-    if(game.state==='title'&&$('sHow').classList.contains('hidden')){e.preventDefault();audioInit();startGame();}
+    if(onTitle){e.preventDefault();audioInit();startGame();}
     else if(game.state==='title'){e.preventDefault();showScreen('sTitle');}
-    else if(game.state==='result'){e.preventDefault();startGame();}
+    else if(game.state==='result'){e.preventDefault();if(game.clear&&game.stage<3) startGame(game.stage+1); else startGame();}
     else if(game.state==='pause'){e.preventDefault();resumeGame();}
+  } else if(onTitle&&(k==='1'||k==='2'||k==='3'||k==='ArrowLeft'||k==='ArrowRight')){
+    e.preventDefault();
+    const n=k==='ArrowLeft'?Math.max(1,game.stage-1):k==='ArrowRight'?Math.min(3,game.stage+1):+k;
+    if(n!==game.stage){setStage(n);sfx.click();}
   } else if(k==='p'||k==='P'||k==='Escape'){
     if(game.state==='play') pauseGame(); else if(game.state==='pause') resumeGame();
   } else if(k==='m'||k==='M'){ setMute(!muted); }
@@ -1076,18 +1188,21 @@ if(TEST){
   $('testBadge').classList.remove('hidden');
   timeScale=clamp(parseFloat(Q.get('speed'))||1,0.1,12);
   autoOn=Q.get('auto')==='1';
+  autoIv=clamp(parseFloat(Q.get('autoiv'))||0.2,0.05,5);
+  autoMiss=clamp(parseFloat(Q.get('automiss'))||0,0,1);
   window.__kage={
-    info:()=>({state:game.state,t:+game.t.toFixed(2),score:game.score,final:game.final,ammo:game.ammo,combo:game.combo,
+    info:()=>({state:game.state,stage:game.stage,stageName:ST().name,clear:game.clear,t:+game.t.toFixed(2),score:game.score,final:game.final,ammo:game.ammo,combo:game.combo,
       vegs:vegs.map(v=>v.state),flyers:flyers.map(f=>f.kind+':'+f.state),downs:game.downs,rescued:game.rescued,
-      birdHits:game.birdHits,stolen:game.stolen,errors:window.__errors.slice(),W,H,SU:+SU.toFixed(1),audio:ac?ac.state:'none',muted,bgm:{on:bgm.on,mode:bgm.mode,step:bgm.step}}),
-    start:()=>startGame(), end:()=>{game.t=DAY;}, jump:s=>{game.t=clamp(s,0,DAY);},
-    speed:n=>{timeScale=clamp(n,0.1,12);}, auto:v=>{autoOn=!!v;},
+      birdHits:game.birdHits,stolen:game.stolen,spawned:Object.assign({},game.spawned),bossN:game.bossN,clouds:clouds.length,
+      errors:window.__errors.slice(),W,H,SU:+SU.toFixed(1),audio:ac?ac.state:'none',muted,bgm:{on:bgm.on,mode:bgm.mode,step:bgm.step}}),
+    start:n=>startGame(n), end:()=>{game.t=DAY;}, jump:s=>{game.t=clamp(s,0,DAY);},
+    speed:n=>{timeScale=clamp(n,0.1,12);}, auto:(v,iv,miss)=>{autoOn=!!v;if(iv!=null) autoIv=clamp(+iv||0.2,0.05,5);if(miss!=null) autoMiss=clamp(+miss||0,0,1);},
     spawn:k=>{const f=k==='tori'?spawnBird():spawnThief(k||'dor');return f?f.id:null;},
     shadows:()=>flyers.filter(f=>hittable(f,sunNow)).map(f=>{const s=shadowPos(f,sunNow),b=bodyPos(f);return {id:f.id,kind:f.kind,state:f.state,sx:Math.round(s.x),sy:Math.round(s.y),bx:Math.round(b.x),by:Math.round(b.y)};}),
     vegsLost:()=>{for(const v of vegs) v.state='lost';},
     cloud:()=>{spawnCloud();const c=clouds[clouds.length-1];c.x=0.5;return {x:Math.round(sxOf(c.x)),y:Math.round(syOf(c.z))};}
   };
-  if(Q.get('start')==='1') setTimeout(startGame,60);
+  if(Q.get('start')==='1') setTimeout(()=>startGame(),60);
 }
 requestAnimationFrame(frame);
 })();
