@@ -167,8 +167,8 @@ function store(key, val) { try { if (val === undefined) return localStorage.getI
 // ===================== 音（その場で合成） =====================
 let actx = null, muted = store('mebae_mute') === '1';
 function ensureAudio() {
-  if (!actx) { try { actx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { actx = null; } }
-  if (actx && actx.state === 'suspended') actx.resume();
+  try{if(navigator.audioSession&&navigator.audioSession.type!=='playback')navigator.audioSession.type='playback';}catch(e){} if (!actx) { try { actx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { actx = null; } }
+  if (actx && (actx.state === 'suspended'||actx.state === 'interrupted')) actx.resume();
 }
 function tone(f1, f2, dur, type = 'sine', vol = 0.12, delay = 0) {
   if (!actx || muted) return;

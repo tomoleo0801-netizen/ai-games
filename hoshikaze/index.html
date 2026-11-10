@@ -128,7 +128,7 @@ let AC=null,MG=null,SG=null,BG=null,NB=null;const PW={};
 function userGesture(){
   if(!AC){
     try{
-      const A=window.AudioContext||window.webkitAudioContext;if(!A)return;
+      try{if(navigator.audioSession&&navigator.audioSession.type!=='playback')navigator.audioSession.type='playback';}catch(e){} const A=window.AudioContext||window.webkitAudioContext;if(!A)return;
       AC=new A();
       MG=AC.createGain();MG.gain.value=soundOn?0.5:0;MG.connect(AC.destination);
       SG=AC.createGain();SG.gain.value=0.9;SG.connect(MG);
@@ -143,7 +143,7 @@ function userGesture(){
       if(songName)playSong(songName,true);
     }catch(e){AC=null;}
   }
-  if(AC&&AC.state==='suspended'){try{AC.resume();}catch(e){}}
+  if(AC&&(AC.state==='suspended'||AC.state==='interrupted')){try{AC.resume();}catch(e){}}
 }
 function setWave(o,w){if(typeof w==='number'&&PW[w])o.setPeriodicWave(PW[w]);else o.type=(typeof w==='number')?'square':w;}
 function sTone(w,f0,f1,dur,vol,delay,dest){

@@ -342,8 +342,8 @@ const ICON_SOUND_OFF = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 
 const A = {
   ctx: null, master: null, sfx: null, mus: null, noiseBuf: null, on: store.get('mebae_sound', true) !== false,
   init() {
-    if (this.ctx) { if (this.ctx.state === 'suspended') this.ctx.resume(); return; }
-    const AC = window.AudioContext || window.webkitAudioContext;
+    if (this.ctx) { if ((this.ctx.state === 'suspended'||this.ctx.state === 'interrupted')) this.ctx.resume(); return; }
+    try{if(navigator.audioSession&&navigator.audioSession.type!=='playback')navigator.audioSession.type='playback';}catch(e){} const AC = window.AudioContext || window.webkitAudioContext;
     if (!AC) return;
     try { this.ctx = new AC(); } catch (e) { this.ctx = null; return; }
     const c = this.ctx;
@@ -356,7 +356,7 @@ const A = {
     for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
     // iOS のための「音のロック解除」
     const s = c.createBufferSource(); s.buffer = c.createBuffer(1, 1, 22050); s.connect(c.destination); s.start(0);
-    if (c.state === 'suspended') c.resume();
+    if ((c.state === 'suspended'||c.state === 'interrupted')) c.resume();
   },
   set(on) {
     this.on = on; store.set('mebae_sound', on);

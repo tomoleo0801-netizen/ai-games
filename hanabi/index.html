@@ -286,8 +286,8 @@ const SONGS={};
 for(const k in SONG_SRC){const s=SONG_SRC[k];const tr=s.tr.map(t=>({inst:t[0],vol:t[1],ev:parseTrack(t[2])}));SONGS[k]={bpm:s.bpm,loop:s.loop,tr,len:Math.max(...tr.map(t=>t.ev.length))};}
 
 function auInit(){
-  if(AU.ctx){if(AU.ctx.state==='suspended'){try{AU.ctx.resume();}catch(e){}}return;}
-  const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;
+  if(AU.ctx){if((AU.ctx.state==='suspended'||AU.ctx.state==='interrupted')){try{AU.ctx.resume();}catch(e){}}return;}
+  try{if(navigator.audioSession&&navigator.audioSession.type!=='playback')navigator.audioSession.type='playback';}catch(e){} const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;
   try{AU.ctx=new AC();}catch(e){AU.ctx=null;return;}
   const c=AU.ctx;AU.master=c.createGain();AU.master.gain.value=AU.muted?0:0.7;AU.master.connect(c.destination);
   AU.bgm=c.createGain();AU.bgm.gain.value=0.6;AU.bgm.connect(AU.master);
@@ -666,7 +666,7 @@ function showResults(){if(G.mode==='results')return;SFX.select();const prevMode=
   row('とうたつ',G.cleared?'ぜんぶクリア！':'ステージ'+(G.stage+1))+row('落とした敵',G.kills+' 機')+row('落とした爆弾',G.bombsShot+' 発')+
   row('命中率',acc+'% （'+G.hits+'/'+G.shots+'）')+row('最大れんさ',G.bestChain)+row('コンティニュー',G.conts+' 回');
  $('rRank').textContent=rk[0];$('rTitle').textContent=rk[1];showScreen('sRes');if(prevMode!=='ending')playSong('clear');}
-function toTitle(){if(AU.ctx&&AU.ctx.state==='suspended'){try{AU.ctx.resume();}catch(e){}}G.mode='title';G.paused=false;clearField();buildTown();G.stage=0;initClouds(0);
+function toTitle(){if(AU.ctx&&(AU.ctx.state==='suspended'||AU.ctx.state==='interrupted')){try{AU.ctx.resume();}catch(e){}}G.mode='title';G.paused=false;clearField();buildTown();G.stage=0;initClouds(0);
  showScreen('sTitle');setHud(false);playSong('title');$('tBest').textContent='ハイスコア '+(parseInt(store.get('hanabi_hi','0'),10)||0);}
 function togglePause(force){if(G.mode!=='play')return;G.paused=force!=null?force:!G.paused;showScreen(G.paused?'sPause':null);
  if(AU.ctx){try{G.paused?AU.ctx.suspend():AU.ctx.resume();}catch(e){}}}

@@ -148,7 +148,7 @@ function resize() {
 }
 
 // ---------- 音（Web Audio でその場で合成。音声ファイルは使わない） ----------
-const AC = window.AudioContext || window.webkitAudioContext;
+try{if(navigator.audioSession&&navigator.audioSession.type!=='playback')navigator.audioSession.type='playback';}catch(e){} const AC = window.AudioContext || window.webkitAudioContext;
 let ac = null, master = null, noiseBuf = null;
 let muted = load('hikari_me_muted') === '1';
 function audioInit() {
@@ -160,7 +160,7 @@ function audioInit() {
       master.gain.value = muted ? 0 : 0.55;
       master.connect(ac.destination);
     }
-    if (ac.state === 'suspended') ac.resume();
+    if ((ac.state === 'suspended'||ac.state === 'interrupted')) ac.resume();
   } catch (e) { ac = null; }
 }
 function tone(f, dly, dur, type = 'sine', vol = 0.15, f2 = 0) {

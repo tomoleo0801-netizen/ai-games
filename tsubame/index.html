@@ -159,8 +159,8 @@ window.addEventListener('resize',layout);window.addEventListener('orientationcha
 /* ---------- 音（Web Audio で全部その場で作る） ---------- */
 const AU={ctx:null,master:null,music:null,sfx:null,noise:null,waves:{},on:save.sound,song:null,songName:'',nextT:0,step:0,ei:0,pending:null,timer:null};
 function auInit(){
- if(AU.ctx){if(AU.ctx.state==='suspended')AU.ctx.resume().catch(()=>{});return;}
- const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;
+ if(AU.ctx){if((AU.ctx.state==='suspended'||AU.ctx.state==='interrupted'))AU.ctx.resume().catch(()=>{});return;}
+ try{if(navigator.audioSession&&navigator.audioSession.type!=='playback')navigator.audioSession.type='playback';}catch(e){} const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;
  try{AU.ctx=new AC();}catch(e){AU.ctx=null;return;}
  const c=AU.ctx;
  AU.master=c.createGain();AU.master.gain.value=AU.on?0.55:0;AU.master.connect(c.destination);
@@ -170,7 +170,7 @@ function auInit(){
  let r=1;for(let i=0;i<len;i++){const bit=(r^(r>>1))&1;r=(r>>1)|(bit<<14);d[i]=(r&1)?0.8:-0.8;}
  AU.noise=b;
  [0.125,0.25,0.5].forEach(dt=>{const n=32,re=new Float32Array(n),im=new Float32Array(n);for(let k=1;k<n;k++)re[k]=(4/(k*Math.PI))*Math.sin(k*Math.PI*dt);AU.waves[dt]=c.createPeriodicWave(re,im);});
- if(c.state==='suspended')c.resume().catch(()=>{});
+ if((c.state==='suspended'||c.state==='interrupted'))c.resume().catch(()=>{});
  AU.timer=setInterval(auTick,25);
  if(AU.pending){const p=AU.pending;AU.pending=null;playSong(p);}
 }

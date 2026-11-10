@@ -170,8 +170,8 @@ resize();
 // ---------- 音（Web Audioで合成） ----------
 let ac = null, muted = false;
 function ensureAudio() {
-  if (!ac) { try { ac = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { ac = null; } }
-  if (ac && ac.state === 'suspended') ac.resume();
+  try{if(navigator.audioSession&&navigator.audioSession.type!=='playback')navigator.audioSession.type='playback';}catch(e){} if (!ac) { try { ac = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { ac = null; } }
+  if (ac && (ac.state === 'suspended'||ac.state === 'interrupted')) ac.resume();
 }
 function tone(f, d, type = 'sine', v = 0.12, f2 = 0, delay = 0) {
   if (!ac || muted) return;
